@@ -15,6 +15,10 @@ public class CharacterMovement : InputComponent
     [SerializeField] CinemachineVirtualCamera _gameCamera;
     [SerializeField] CharacterWallSneak _wallSneak;
 
+    [SerializeField] Transform _upRaycastPoint;
+    [SerializeField] Transform _downRaycastPoint;
+
+
     [Space(5)]
     [Header("Settings")]
     [Range(1, 20)]
@@ -28,6 +32,13 @@ public class CharacterMovement : InputComponent
 
     [Range(1, 10)]
     [SerializeField] float _jumpHeight;
+    
+    [Range(0.1f, 1)]
+    [SerializeField] float _secondJumpFactor;
+
+    [Range(0.01f, 1)]
+    [SerializeField] float _ledgeGrabRange;
+
 
     [Range(0.1f, 1)]
     [SerializeField] float _jumpGizmosWidth = 0.2f;
@@ -41,6 +52,8 @@ public class CharacterMovement : InputComponent
 
     [Range(0.5f, 10)]
     [SerializeField] float _lerpFactor = 5;
+
+    bool _readyForSecondJump;
 
     int _lockCount;
 
@@ -57,6 +70,7 @@ public class CharacterMovement : InputComponent
         Running,
         Creeping,
         Jumping,
+        AtLedge
     }
 
     private void Start()
@@ -108,23 +122,11 @@ public class CharacterMovement : InputComponent
 
     }
 
-    private void Jump(float height)
+    private void Jump()
     {
         if (IsGrounded(_groundCheckRadius))
         {
-            var newVelocity = _rigidbody.velocity;
-
-            float launchMagnitude = 2 * Mathf.Abs(Physics.gravity.y) * height;
-
-            launchMagnitude = Mathf.Pow(launchMagnitude, 0.5f);
-
-            newVelocity.y = launchMagnitude;
-
-            _rigidbody.velocity = newVelocity;
-
-
-            _animationCommand.Jump();
-            _currentState = State.Jumping;
+            Launch(_jumpHeight);
 
         }
 
@@ -155,12 +157,13 @@ public class CharacterMovement : InputComponent
     {
         if (_lockCount == 0)
         {
+            //Look at next switch for state transition.
             switch (_currentState)
             {
                 case State.Idle:
 
                     if (_inputJump)
-                        Jump(_jumpHeight);
+                        Jump();
 
                     _animationCommand.Idle();
                     break;
@@ -169,7 +172,7 @@ public class CharacterMovement : InputComponent
                     MovePlayer(_runningSpeed);
 
                     if (_inputJump)
-                        Jump(_jumpHeight);
+                        Jump();
 
                     _animationCommand.Run();
                     break;
@@ -178,13 +181,34 @@ public class CharacterMovement : InputComponent
                     MovePlayer(_creepingSpeed);
 
                     if (_inputJump)
-                        Jump(_jumpHeight);
+                        Jump();
 
                     _animationCommand.Creep();
                     break;
 
                 case State.Jumping:
                     MovePlayer(_inAirSpeed);
+
+                    //Double Jump!
+                    if (_inputJump && _readyForSecondJump) {
+                        Launch(_jumpHeight * _secondJumpFactor);
+                        
+                        //Only two jumps!
+                        _readyForSecondJump = false;
+                    }
+                    break;
+
+                case State.AtLedge:
+                    _rigidbody.velocity = Vector3.zero;
+                    _rigidbody.useGravity = false;
+
+                    if (_inputJump)
+                    {
+                        _rigidbody.useGravity = true;
+                        //Dont check ground for this jump
+                        Launch(_jumpHeight);
+                    }
+
                     break;
             }
 
@@ -241,12 +265,26 @@ public class CharacterMovement : InputComponent
                     break;
 
                 case State.Jumping:
-                    if (_rigidbody.velocity.y < 0 && IsGrounded(_groundCheckRadius))
-                    {
-                        _currentState = State.Idle;
-                        _animationCommand.Land();
 
+                    //Grab ledge when falling
+                    if (_rigidbody.velocity.y <= 0)
+                    {
+                        if (GrabLedge())
+                        {
+                            _currentState = State.AtLedge;
+                        }
+                        else if (IsGrounded(_groundCheckRadius))
+                        {
+                            _currentState = State.Idle;
+                            _animationCommand.Land();
+
+                        }
                     }
+
+
+                    break;
+
+                case State.AtLedge:
                     break;
 
 
@@ -332,9 +370,45 @@ public class CharacterMovement : InputComponent
 
     }
 
-    public void LaunchPlayer(float height)
+    bool GrabLedge()
     {
-        Jump(height);
+        if (_downRaycastPoint != null && _upRaycastPoint != null)
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(_downRaycastPoint.position, _bodyObject.forward, out hit, _ledgeGrabRange, _groundMask))
+            {
+                if (!Physics.Raycast(_upRaycastPoint.position, _bodyObject.forward, _ledgeGrabRange, _groundMask))
+                {
+                    Debug.Log("Grabbing");
+                    //transform.position = hit.point;
+
+                    return true;
+                }
+
+
+            }
+
+
+        }
+
+        return false;
+    }
+    public void Launch(float height)
+    {
+        var newVelocity = _rigidbody.velocity;
+
+        float launchMagnitude = 2 * Mathf.Abs(Physics.gravity.y) * height;
+
+        launchMagnitude = Mathf.Pow(launchMagnitude, 0.5f);
+
+        newVelocity.y = launchMagnitude;
+
+        _rigidbody.velocity = newVelocity;
+
+        _readyForSecondJump = true;
+
+        _animationCommand.Jump();
+        _currentState = State.Jumping;
     }
 
     public void MovePlayerToPositionInPipe(Vector3 position)
@@ -368,6 +442,8 @@ public class CharacterMovement : InputComponent
 
 
         Gizmos.DrawWireCube(cubePosition, new Vector3(_jumpGizmosWidth, _jumpHeight, _jumpGizmosWidth));
+
+        Gizmos.DrawWireSphere(_groundCheck.position, _groundCheckRadius);
     }
 #endif
 

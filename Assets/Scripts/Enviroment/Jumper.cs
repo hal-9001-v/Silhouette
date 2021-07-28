@@ -31,7 +31,7 @@ public class Jumper : MonoBehaviour
         
         if(_player != null){
 
-            _player.LaunchPlayer(_jumpHeight);
+            _player.Launch(_jumpHeight);
 
             if (_animator != null) {
                 _animator.SetTrigger(_jumpTrigger);
