@@ -15,7 +15,6 @@ public class Projectile : MonoBehaviour
     Rigidbody _rigidBody;
     Collider _collider;
     Renderer _renderer;
-    CharacterHealth _player;
 
     float _damage = 1;
     float _push = 1;
@@ -24,8 +23,6 @@ public class Projectile : MonoBehaviour
     void Start()
     {
         //Initialize
-        _player = FindObjectOfType<CharacterHealth>();
-
         _rigidBody = GetComponent<Rigidbody>();
         _collider = GetComponent<Collider>();
 
@@ -40,9 +37,10 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter(Collider collision)
     {
-        if (_player != null && collision.gameObject == _player.gameObject)
+        Health health = collision.GetComponent<Health>();
+        if (health != null)
         {
-            _player.HurtPlayer(_damage, (_player.transform.position - transform.position).normalized*_push);
+            health.Hurt(_damage, transform.position, _push);
 
             _onHitPlayer.Invoke();
         }

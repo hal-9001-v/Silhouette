@@ -32,7 +32,7 @@ public class CharacterMovement : InputComponent
 
     [Range(1, 10)]
     [SerializeField] float _jumpHeight;
-    
+
     [Range(0.1f, 1)]
     [SerializeField] float _secondJumpFactor;
 
@@ -61,6 +61,9 @@ public class CharacterMovement : InputComponent
     Vector2 _currentInput;
     bool _inputJump;
 
+    Vector3 _runningVelocity;
+    Vector3 _pushVelocity;
+
     State _currentState;
     bool _isCreeping;
 
@@ -69,8 +72,11 @@ public class CharacterMovement : InputComponent
         Idle,
         Running,
         Creeping,
-        Jumping,
-        AtLedge
+        StartJump,
+        Jump,
+        SecondJump,
+        AtLedge,
+        Hurt
     }
 
     private void Start()
@@ -169,7 +175,7 @@ public class CharacterMovement : InputComponent
                     break;
 
                 case State.Running:
-                    MovePlayer(_runningSpeed);
+                    MovePlayer(_runningSpeed, ForceMode.VelocityChange);
 
                     if (_inputJump)
                         Jump();
@@ -178,7 +184,7 @@ public class CharacterMovement : InputComponent
                     break;
 
                 case State.Creeping:
-                    MovePlayer(_creepingSpeed);
+                    MovePlayer(_creepingSpeed, ForceMode.VelocityChange);
 
                     if (_inputJump)
                         Jump();
@@ -186,16 +192,17 @@ public class CharacterMovement : InputComponent
                     _animationCommand.Creep();
                     break;
 
-                case State.Jumping:
-                    MovePlayer(_inAirSpeed);
 
-                    //Double Jump!
-                    if (_inputJump && _readyForSecondJump) {
-                        Launch(_jumpHeight * _secondJumpFactor);
-                        
-                        //Only two jumps!
-                        _readyForSecondJump = false;
-                    }
+                case State.StartJump:
+
+                    break;
+
+                case State.Jump:
+                    MovePlayer(_inAirSpeed, ForceMode.VelocityChange);
+                    break;
+
+                case State.SecondJump:
+                    MovePlayer(_inAirSpeed, ForceMode.VelocityChange);
                     break;
 
                 case State.AtLedge:
@@ -212,8 +219,6 @@ public class CharacterMovement : InputComponent
                     break;
             }
 
-            //Reset Input Variables
-            _inputJump = false;
 
             //States transitions
             switch (_currentState)
@@ -264,23 +269,32 @@ public class CharacterMovement : InputComponent
                     }
                     break;
 
-                case State.Jumping:
+                //Since velocity it is not updated when jump is required, IsGrounded is
+                case State.StartJump:
+                    _currentState = State.Jump;
+                    break;
 
-                    //Grab ledge when falling
-                    if (_rigidbody.velocity.y <= 0)
+                case State.Jump:
+                    //Double Jump!
+                    if (_inputJump)
                     {
-                        if (GrabLedge())
-                        {
-                            _currentState = State.AtLedge;
-                        }
-                        else if (IsGrounded(_groundCheckRadius))
-                        {
-                            _currentState = State.Idle;
-                            _animationCommand.Land();
+                        Launch(_jumpHeight * _secondJumpFactor);
 
-                        }
+                        _currentState = State.SecondJump;
+
+                    }
+                    else
+                    {
+                        CheckInAirState();
                     }
 
+
+
+                    break;
+
+
+                case State.SecondJump:
+                    CheckInAirState();
 
                     break;
 
@@ -290,6 +304,28 @@ public class CharacterMovement : InputComponent
 
             }
 
+        }
+
+
+        //Reset Input Variables
+        _inputJump = false;
+    }
+
+    void CheckInAirState()
+    {
+        //Grab ledge when falling
+        if (_rigidbody.velocity.y <= 0)
+        {
+            if (GrabLedge())
+            {
+                _currentState = State.AtLedge;
+            }
+            else if (IsGrounded(_groundCheckRadius))
+            {
+                _currentState = State.Idle;
+                _animationCommand.Land();
+
+            }
         }
     }
 
@@ -307,7 +343,7 @@ public class CharacterMovement : InputComponent
             Debug.LogWarning("Lock Count is already 0, cant be freed!");
         }
     }
-    private void MovePlayer(float speed)
+    private void MovePlayer(float speed, ForceMode mode)
     {
         if (_rigidbody != null && _playerCamera != null)
         {
@@ -320,29 +356,21 @@ public class CharacterMovement : InputComponent
             else
             {
                 #region Apply movement in camera Direction
-                Vector3 v = new Vector3();
-                Vector3 v2;
+                Vector3 targetVelocity;
 
-                v2 = _playerCamera.GetForward();
-                v2.y = 0;
+                targetVelocity = _playerCamera.GetForward() * _currentInput.y + _playerCamera.GetRight() * _currentInput.x;
 
-                v2.Normalize();
-                v2 *= speed * _currentInput.y;
+                targetVelocity.y = 0;
+                targetVelocity.Normalize();
+                targetVelocity *= speed;
 
-                v += v2;
+                //_rigidbody.AddForce(totalVelocity, ForceMode.VelocityChange);
 
-                v2 = _playerCamera.GetRight();
-                v2.y = 0;
+                targetVelocity = targetVelocity - _rigidbody.velocity;
 
-                v2.Normalize();
-                v2 *= speed * _currentInput.x;
+                targetVelocity.y = 0;
 
-                v += v2;
-
-                v.y = _rigidbody.velocity.y;
-
-                _rigidbody.velocity = v;
-
+                _rigidbody.AddForce(targetVelocity, mode);
 
                 #endregion
 
@@ -393,35 +421,33 @@ public class CharacterMovement : InputComponent
 
         return false;
     }
+
+    /// <summary>
+    /// Launch character on Up direction to specified height
+    /// </summary>
+    /// <param name="height"></param>
     public void Launch(float height)
     {
-        var newVelocity = _rigidbody.velocity;
+
+        Vector3 jumpVelocity = Vector3.zero;
 
         float launchMagnitude = 2 * Mathf.Abs(Physics.gravity.y) * height;
 
         launchMagnitude = Mathf.Pow(launchMagnitude, 0.5f);
 
-        newVelocity.y = launchMagnitude;
+        jumpVelocity.y = launchMagnitude;
 
-        _rigidbody.velocity = newVelocity;
+        Launch(jumpVelocity);
+    }
+
+    public void Launch(Vector3 velocity)
+    {
+        _rigidbody.AddForce(velocity, ForceMode.VelocityChange);
 
         _readyForSecondJump = true;
 
         _animationCommand.Jump();
-        _currentState = State.Jumping;
-    }
-
-    public void MovePlayerToPositionInPipe(Vector3 position)
-    {
-        transform.position = position;
-
-        StartCoroutine(CountdownToAction(2, () =>
-        {
-
-            _currentState = State.Idle;
-
-        }));
-
+        _currentState = State.StartJump;
     }
 
     IEnumerator CountdownToAction(float time, Action action)

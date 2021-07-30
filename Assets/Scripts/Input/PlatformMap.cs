@@ -81,6 +81,14 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""Attack"",
+                    ""type"": ""Button"",
+                    ""id"": ""3ab9365e-8314-47d7-b923-f273f3f7612f"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -248,6 +256,17 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                     ""action"": ""Binocucom"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3a500917-85de-415c-88a7-5a775e7d8082"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Normal"",
+                    ""action"": ""Attack"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -286,6 +305,7 @@ public class @PlatformMap : IInputActionCollection, IDisposable
         m_Character_Creep = m_Character.FindAction("Creep", throwIfNotFound: true);
         m_Character_Interact = m_Character.FindAction("Interact", throwIfNotFound: true);
         m_Character_Binocucom = m_Character.FindAction("Binocucom", throwIfNotFound: true);
+        m_Character_Attack = m_Character.FindAction("Attack", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -343,6 +363,7 @@ public class @PlatformMap : IInputActionCollection, IDisposable
     private readonly InputAction m_Character_Creep;
     private readonly InputAction m_Character_Interact;
     private readonly InputAction m_Character_Binocucom;
+    private readonly InputAction m_Character_Attack;
     public struct CharacterActions
     {
         private @PlatformMap m_Wrapper;
@@ -355,6 +376,7 @@ public class @PlatformMap : IInputActionCollection, IDisposable
         public InputAction @Creep => m_Wrapper.m_Character_Creep;
         public InputAction @Interact => m_Wrapper.m_Character_Interact;
         public InputAction @Binocucom => m_Wrapper.m_Character_Binocucom;
+        public InputAction @Attack => m_Wrapper.m_Character_Attack;
         public InputActionMap Get() { return m_Wrapper.m_Character; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -388,6 +410,9 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                 @Binocucom.started -= m_Wrapper.m_CharacterActionsCallbackInterface.OnBinocucom;
                 @Binocucom.performed -= m_Wrapper.m_CharacterActionsCallbackInterface.OnBinocucom;
                 @Binocucom.canceled -= m_Wrapper.m_CharacterActionsCallbackInterface.OnBinocucom;
+                @Attack.started -= m_Wrapper.m_CharacterActionsCallbackInterface.OnAttack;
+                @Attack.performed -= m_Wrapper.m_CharacterActionsCallbackInterface.OnAttack;
+                @Attack.canceled -= m_Wrapper.m_CharacterActionsCallbackInterface.OnAttack;
             }
             m_Wrapper.m_CharacterActionsCallbackInterface = instance;
             if (instance != null)
@@ -416,6 +441,9 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                 @Binocucom.started += instance.OnBinocucom;
                 @Binocucom.performed += instance.OnBinocucom;
                 @Binocucom.canceled += instance.OnBinocucom;
+                @Attack.started += instance.OnAttack;
+                @Attack.performed += instance.OnAttack;
+                @Attack.canceled += instance.OnAttack;
             }
         }
     }
@@ -439,5 +467,6 @@ public class @PlatformMap : IInputActionCollection, IDisposable
         void OnCreep(InputAction.CallbackContext context);
         void OnInteract(InputAction.CallbackContext context);
         void OnBinocucom(InputAction.CallbackContext context);
+        void OnAttack(InputAction.CallbackContext context);
     }
 }

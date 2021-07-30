@@ -1,84 +1,68 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
+using TMPro;
 
-[RequireComponent(typeof(CheckPointTracker))]
+
+[RequireComponent(typeof(Health))]
 public class CharacterHealth : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] TextMeshProUGUI _hpTextMesh;
-    [SerializeField] [Range(1, 10)] float _maxHealth;
-    [SerializeField] bool _canGetHurt;
+    [SerializeField] Rigidbody _rigidbody;
+    [SerializeField] CharacterMovement _characterMovement;
+    [SerializeField] TextMeshProUGUI _textMesh;
 
-    Rigidbody _rigidBody;
-    CheckPointTracker _checkPointTracker;
-    float _currentHealth;
-    
+    [Header("Settings")]
+    [SerializeField] [Range(0.1f, 2)] float _knockUpDuration;
 
-        
+    Health _health;
 
-    public bool IsAlive
+
+    private void Start()
     {
-        get
+        _health = GetComponent<Health>();
+
+        _health.HurtAction += HurtPlayer;
+        _health.DeadAction += KillPlayer;
+
+    }
+
+
+    void HurtPlayer(Vector3 source, float push)
+    {
+        if (_textMesh != null)
         {
-            return _currentHealth <= 0;
+            _textMesh.text =_health.CurrentHealth.ToString();
         }
-        private set
+
+        StartCoroutine(KnockUpCharacter(_knockUpDuration));
+
+        Vector3 pushDirection = _characterMovement.transform.position - source;
+        pushDirection.y = pushDirection.magnitude / 3;
+
+        _characterMovement.Launch(pushDirection.normalized * push);
+
+
+    }
+
+    IEnumerator KnockUpCharacter(float duration)
+    {
+        _characterMovement.Lock();
+        _health.CanGetHurt = false;
+        yield return new WaitForSeconds(duration);
+        _health.CanGetHurt = true;
+
+        _characterMovement.Unlock();
+    }
+
+    void KillPlayer(Vector3 source, float push)
+    {
+        if (_textMesh != null)
         {
-
-        }
-    }
-
-    private void Awake()
-    {
-        _currentHealth = _maxHealth;
-
-
-        _canGetHurt = true;
-        _rigidBody = GetComponent<Rigidbody>();
-        _checkPointTracker = GetComponent<CheckPointTracker>();
-
-    }
-
-    public void KillPlayer()
-    {
-        //Debug.Log("DeaD!");
-        _checkPointTracker.SpawnAtCheckPoint();
-        _currentHealth = 10;
-        _hpTextMesh.text = _currentHealth.ToString();
-
-    }
-
-    public void HurtPlayer(float dmg)
-    {
-        if (_canGetHurt)
-        {
-            _currentHealth -= dmg;
-            if (_hpTextMesh)
-            {
-                _hpTextMesh.text = _currentHealth.ToString();
-            }
-
-            //Debug.Log("Hurt");
-            if (_currentHealth <= 0)
-            {
-                KillPlayer();
-
-            }
+            _textMesh.text = "X_X R.I.P.";
         }
 
     }
 
-    /// <summary>
-    /// Hurt Player and push it adding velocity
-    /// </summary>
-    /// <param name="dmg"></param>
-    /// <param name="push"></param>
-    public void HurtPlayer(float dmg, Vector3 pushVelocity)
-    {
-        HurtPlayer(dmg);
 
-        _rigidBody.velocity = pushVelocity;
-    }
 }

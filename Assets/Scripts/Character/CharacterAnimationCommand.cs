@@ -109,7 +109,7 @@ public class CharacterAnimationCommand : MonoBehaviour
 
     public void Run()
     {
-        //_animator.SetTrigger(RUNTRIGGER);
+        _animator.SetTrigger(RUNTRIGGER);
         _animator.SetBool(RUNNINGBOOL, true);
         _animator.SetBool(CREEPINGBOOL, false);
 
@@ -117,6 +117,7 @@ public class CharacterAnimationCommand : MonoBehaviour
 
     public void Creep()
     {
+        _animator.SetTrigger(CREEPTRIGGER);
         _animator.SetBool(CREEPINGBOOL, true);
         _animator.SetBool(RUNNINGBOOL, false);
         _animator.SetBool(IDLINGBOOL, false);
