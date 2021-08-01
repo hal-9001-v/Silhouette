@@ -6,6 +6,8 @@ public class SightTrigger : MonoBehaviour
 {
     [Header("Settings")]
 
+    public TypeOfTrigger typeOfTrigger;
+
     //Distance To Center
     [SerializeField] [Range(0.1f, 2f)] float _xRange;
     //Segments/2 for X axis
@@ -30,6 +32,12 @@ public class SightTrigger : MonoBehaviour
     [SerializeField] bool _drawGizmos = true;
     [SerializeField] [Range(0, 1)] float _pointRadius = 0.2f;
     [SerializeField] Color _pointColor = Color.blue;
+
+    public enum TypeOfTrigger
+    {
+        Player,
+        Enemy
+    }
 
     //Variables
     public Vector3 SightCenter

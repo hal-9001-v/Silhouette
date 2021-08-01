@@ -75,13 +75,13 @@ public class Sighter : MonoBehaviour
 
     }
 
-    public Transform GetTargetOnSight()
+    public SightTrigger GetTargetOnSight()
     {
         foreach (SightTrigger trigger in _targets)
         {
             if (AnyPointOnSight(trigger.GetSightPoints(), _spotLight.transform.position, _spotLight.transform.forward, _spotLight.range, _spotLight.spotAngle, true, _rayCastBlockingMask))
             {
-                return trigger.transform;
+                return trigger;
             }
         }
 
@@ -101,17 +101,17 @@ public class Sighter : MonoBehaviour
         }
     }
 
-    public Transform[] GetTargetsOnSight()
+    public SightTrigger[] GetTargetsOnSight()
     {
         if (_targets != null && _targets.Length != 0)
         {
 
-            List<Transform> sightedTargets = new List<Transform>();
+            List<SightTrigger> sightedTargets = new List<SightTrigger>();
             foreach (SightTrigger trigger in _targets)
             {
                 if (AnyPointOnSight(trigger.GetSightPoints(), _spotLight.transform.position, _spotLight.transform.forward, _spotLight.range, _spotLight.spotAngle, true, _rayCastBlockingMask))
                 {
-                    sightedTargets.Add(trigger.transform);
+                    sightedTargets.Add(trigger);
                 }
             }
 

@@ -15,18 +15,23 @@ public class Navigator : MonoBehaviour
 
     public Action patrolPointReachedAction;
     public Action pursueReachedAction;
+    public Action targetPositionReachedAction;
 
     int _currentPatrolPoint;
     bool _apply;
 
     Transform _target;
 
+    //Used for an specific position with no changes
+    Vector3 _targetPosition;
+
     State _currentState;
 
     enum State
     {
         Pursue,
-        Patrol
+        Patrol,
+        GoingToPosition
     }
 
     // Start is called before the first frame update
@@ -71,6 +76,18 @@ public class Navigator : MonoBehaviour
         _currentState = State.Pursue;
 
         Continue();
+    }
+
+    public void GoToPosition(float speed, Vector3 position)
+    {
+        _navMeshAgent.speed = speed;
+
+        _targetPosition = position;
+
+        _currentState = State.GoingToPosition;
+
+        Continue();
+
     }
 
     public void Stop()
@@ -126,7 +143,11 @@ public class Navigator : MonoBehaviour
                         if (patrolPointReachedAction != null)
                             pursueReachedAction.Invoke();
                     }
+                    break;
 
+                case State.GoingToPosition:
+
+                    _navMeshAgent.SetDestination(_targetPosition);
                     break;
 
                 default:

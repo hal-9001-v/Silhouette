@@ -5,26 +5,26 @@ using UnityEngine;
 
 public class ColliderDelegate : MonoBehaviour
 {
-    public Action<Collision> CollisionEnterAction;
-    public Action<Collision> CollisionStayAction;
-    public Action<Collision> CollisionExitAction;
+    public Action<Collision, Vector3> CollisionEnterAction;
+    public Action<Collision, Vector3> CollisionStayAction;
+    public Action<Collision, Vector3> CollisionExitAction;
     
-    public Action<Collider> TriggerEnterAction;
-    public Action<Collider> TriggerStayAction;
-    public Action<Collider> TriggerExitAction;
+    public Action<Collider, Vector3> TriggerEnterAction;
+    public Action<Collider, Vector3> TriggerStayAction;
+    public Action<Collider, Vector3> TriggerExitAction;
 
 
     private void OnCollisionEnter(Collision collision)
     {
         if (CollisionEnterAction != null)
         {
-            CollisionEnterAction.Invoke(collision);
+            CollisionEnterAction.Invoke(collision,transform.position);
         }
     }
     private void OnCollisionStay(Collision collision)
     {
         if (CollisionStayAction != null) {
-            CollisionStayAction.Invoke(collision);
+            CollisionStayAction.Invoke(collision, transform.position);
         }
     }
 
@@ -32,7 +32,7 @@ public class ColliderDelegate : MonoBehaviour
     {
         if (CollisionExitAction != null)
         {
-            CollisionExitAction.Invoke(collision);
+            CollisionExitAction.Invoke(collision, transform.position);
         }
     }
 
@@ -40,7 +40,7 @@ public class ColliderDelegate : MonoBehaviour
     {
         if (TriggerEnterAction != null)
         {
-            TriggerEnterAction.Invoke(other);
+            TriggerEnterAction.Invoke(other, transform.position);
         }
     }
 
@@ -48,7 +48,7 @@ public class ColliderDelegate : MonoBehaviour
     {
         if (TriggerStayAction != null)
         {
-            TriggerStayAction.Invoke(other);
+            TriggerStayAction.Invoke(other, transform.position);
         }
     }
 
@@ -56,7 +56,7 @@ public class ColliderDelegate : MonoBehaviour
     {
         if (TriggerExitAction != null)
         {
-            TriggerExitAction.Invoke(other);
+            TriggerExitAction.Invoke(other, transform.position);
         }
     }
 

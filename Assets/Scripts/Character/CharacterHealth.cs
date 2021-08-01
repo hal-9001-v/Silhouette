@@ -28,7 +28,7 @@ public class CharacterHealth : MonoBehaviour
     }
 
 
-    void HurtPlayer(Vector3 source, float push)
+    void HurtPlayer(Vector3 source, float push, Transform hitter)
     {
         if (_textMesh != null)
         {
@@ -55,7 +55,7 @@ public class CharacterHealth : MonoBehaviour
         _characterMovement.Unlock();
     }
 
-    void KillPlayer(Vector3 source, float push)
+    void KillPlayer(Vector3 source, float push, Transform hitter)
     {
         if (_textMesh != null)
         {

@@ -40,7 +40,7 @@ public class Projectile : MonoBehaviour
         Health health = collision.GetComponent<Health>();
         if (health != null)
         {
-            health.Hurt(_damage, transform.position, _push);
+            health.Hurt(_damage, transform.position, _push, transform);
 
             _onHitPlayer.Invoke();
         }

@@ -21,9 +21,10 @@ public class Health : MonoBehaviour
     /// <summary>
     /// Every time character is hurt. NOTE: This is not invoked when it is killed.
     /// Vector3 is the point of hit and float is the push velocity
+    /// Transform is the hitting GameObject
     /// </summary>
-    public Action<Vector3, float> HurtAction;
-    public Action<Vector3, float> DeadAction;
+    public Action<Vector3, float, Transform> HurtAction;
+    public Action<Vector3, float, Transform> DeadAction;
 
     public bool IsAlive
     {
@@ -44,7 +45,7 @@ public class Health : MonoBehaviour
         CanGetHurt = true;
     }
 
-    public void Hurt(float dmg, Vector3 source, float push)
+    public void Hurt(float dmg, Vector3 source, float push, Transform hitter)
     {
         if (CanGetHurt)
         {
@@ -54,7 +55,7 @@ public class Health : MonoBehaviour
             if (CurrentHealth > 0)
             {
                 if (HurtAction != null)
-                    HurtAction.Invoke(source, push);
+                    HurtAction.Invoke(source, push, hitter);
 
             }
             else
@@ -63,7 +64,7 @@ public class Health : MonoBehaviour
                 CurrentHealth = 0;
 
                 if (DeadAction != null)
-                    DeadAction.Invoke(source, push);
+                    DeadAction.Invoke(source, push, hitter);
 
             }
         }

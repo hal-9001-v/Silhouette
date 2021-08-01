@@ -64,14 +64,14 @@ public class Tank : Enemy
         switch (_currentState)
         {
             case TankState.Patrolling:
-                Transform target = _sighter.GetTargetOnSight();
+                SightTrigger target = _sighter.GetTargetOnSight();
 
                 //Check If player is in front. If so, calculate aiming time and direction for next State, which is Aiming
                 if (target != null)
                 {
                     //Direction
                     _aimStartingForward = _head.transform.forward;
-                    _aimForward = target.position- _head.transform.position;
+                    _aimForward = target.transform.position- _head.transform.position;
                     _projectileDirection = _aimForward.normalized;
                     _aimForward.y = 0;
                     _aimForward.Normalize();
