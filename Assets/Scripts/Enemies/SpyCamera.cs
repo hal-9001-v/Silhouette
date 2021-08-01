@@ -73,7 +73,7 @@ public class SpyCamera : Enemy
             }
         }
 
-        if (_sighter.IsPlayerOnSight())
+        if (_sighter.IsAnyTargetOnSight())
         {
             _sighter.SpotLight.color = _spottedColor;
 

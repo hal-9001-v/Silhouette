@@ -28,40 +28,11 @@ public class Sighter : MonoBehaviour
     [Tooltip("Masks that can hide player")]
     [SerializeField] LayerMask _rayCastBlockingMask;
 
-    SightTrigger _player;
-    public Vector3 PlayerPosition
-    {
-        get
-        {
-            if (_player != null)
-                return _player.transform.position;
-            else
-            {
-                Debug.LogWarning("No player in scene!");
-                return Vector3.zero;
-            }
-        }
-    }
-    public Transform PlayerTransform
-    {
-        get
-        {
-            if (_player != null)
-            {
-                return _player.transform;
-            }
-            else
-            {
-                Debug.LogWarning("No Player in scene!");
-                return null;
-            }
-
-        }
-    }
+    SightTrigger[] _targets;
 
     private void Awake()
     {
-        _player = FindObjectOfType<SightTrigger>();
+        _targets = FindObjectsOfType<SightTrigger>();
     }
 
 
@@ -104,15 +75,52 @@ public class Sighter : MonoBehaviour
 
     }
 
-    public bool IsPlayerOnSight()
+    public Transform GetTargetOnSight()
     {
-
-        if (_player != null)
+        foreach (SightTrigger trigger in _targets)
         {
-            return AnyPointOnSight(_player.GetSightPoints(), _spotLight.transform.position, _spotLight.transform.forward, _spotLight.range, _spotLight.spotAngle, true, _rayCastBlockingMask);
+            if (AnyPointOnSight(trigger.GetSightPoints(), _spotLight.transform.position, _spotLight.transform.forward, _spotLight.range, _spotLight.spotAngle, true, _rayCastBlockingMask))
+            {
+                return trigger.transform;
+            }
         }
 
-        return false;
+        return null;
+
+    }
+
+    public bool IsAnyTargetOnSight()
+    {
+        if (GetTargetOnSight() != null)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public Transform[] GetTargetsOnSight()
+    {
+        if (_targets != null && _targets.Length != 0)
+        {
+
+            List<Transform> sightedTargets = new List<Transform>();
+            foreach (SightTrigger trigger in _targets)
+            {
+                if (AnyPointOnSight(trigger.GetSightPoints(), _spotLight.transform.position, _spotLight.transform.forward, _spotLight.range, _spotLight.spotAngle, true, _rayCastBlockingMask))
+                {
+                    sightedTargets.Add(trigger.transform);
+                }
+            }
+
+            return sightedTargets.ToArray();
+        }
+
+
+
+        return null;
     }
 
 }

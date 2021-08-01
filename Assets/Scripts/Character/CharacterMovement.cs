@@ -53,8 +53,6 @@ public class CharacterMovement : InputComponent
     [Range(0.5f, 10)]
     [SerializeField] float _lerpFactor = 5;
 
-    bool _readyForSecondJump;
-
     int _lockCount;
 
     //Logic
@@ -379,13 +377,17 @@ public class CharacterMovement : InputComponent
                 if (_bodyObject != null)
                 {
                     Quaternion prevRotation = _bodyObject.rotation;
-                    Quaternion actualRot = Quaternion.LookRotation(_rigidbody.velocity);
+                    if (_rigidbody.velocity != Vector3.zero)
+                    {
 
-                    var rot = Quaternion.Lerp(prevRotation, actualRot, Time.deltaTime * _lerpFactor).eulerAngles;
+                        Quaternion actualRot = Quaternion.LookRotation(_rigidbody.velocity);
 
-                    rot.z = 0;
-                    rot.x = 0;
-                    _bodyObject.transform.eulerAngles = rot;
+                        var rot = Quaternion.Lerp(prevRotation, actualRot, Time.deltaTime * _lerpFactor).eulerAngles;
+
+                        rot.z = 0;
+                        rot.x = 0;
+                        _bodyObject.transform.eulerAngles = rot;
+                    }
                 }
 
                 #endregion
@@ -443,8 +445,6 @@ public class CharacterMovement : InputComponent
     public void Launch(Vector3 velocity)
     {
         _rigidbody.AddForce(velocity, ForceMode.VelocityChange);
-
-        _readyForSecondJump = true;
 
         _animationCommand.Jump();
         _currentState = State.StartJump;
