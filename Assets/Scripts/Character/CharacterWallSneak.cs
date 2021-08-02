@@ -14,12 +14,16 @@ public class CharacterWallSneak : InputComponent
     [SerializeField] CharacterMovement _movement;
     [SerializeField] Rigidbody _rigidbody;
     [SerializeField] CharacterAnimationCommand _animationCommand;
+    public LineRenderer Line;
 
     PlayerCamera _playerCamera;
 
+    int _lineIndex;
+
     [Header("Settings")]
     [SerializeField] [Range(0.01f, 20)] float _alignmentSpeed = 10;
-    [SerializeField] [Range(1, 10)] float _speed;
+    [SerializeField] Vector3 _alignmentOffset;
+    [SerializeField] [Range(0.1f, 3)] float _speed;
 
     public bool Apply;
     Vector2 _input;
@@ -42,17 +46,21 @@ public class CharacterWallSneak : InputComponent
     {
         if (_aligner != null)
         {
-            Apply = true;
             _movement.Lock();
-
-            wallZone.setCurrentPositionToClosestPoint(transform.position);
-
-            _aligner.AlignCharacter(wallZone.GetCurrentPosition(), _alignmentSpeed, null);
 
             _currentWallZone = wallZone;
 
             _bodyObject.forward = wallZone.Direction;
+
+            _lineIndex = wallZone.GetClosestIndex(transform.position);
+
+            _aligner.AlignCharacter(wallZone.GetPoint(ref _lineIndex) + _alignmentOffset, _alignmentSpeed, EndOfAligment);
         }
+    }
+
+    void EndOfAligment()
+    {
+        Apply = true;
     }
 
     public void UnstickToWall()
@@ -72,7 +80,6 @@ public class CharacterWallSneak : InputComponent
         {
             if (_input.x == 0)
             {
-                _rigidbody.velocity = new Vector3(0, _rigidbody.velocity.y, 0);
 
                 if (_animationCommand != null)
                     _animationCommand.WallIdle();
@@ -80,35 +87,34 @@ public class CharacterWallSneak : InputComponent
             }
             else
             {
-                if (_animationCommand != null)
-                    _animationCommand.WallMove();
-
-                float totalTime;
-                Vector3 movementDirection = _playerCamera.GetRight();
-                //t = dx / Lenght
-                if (_input.x > 0)
+                Vector3 destination;
+                int nextIndex;
+                if (_input.x < 0)
                 {
-                    totalTime = -Time.deltaTime * _speed / _currentWallZone.CurveLength;
+                    nextIndex = _lineIndex + 1;
                 }
                 else
                 {
-                    totalTime = Time.deltaTime * _speed / _currentWallZone.CurveLength;
-
+                    nextIndex = _lineIndex - 1;
                 }
 
-                _currentWallZone.ChangeTValue(movementDirection, totalTime);
+                destination = _currentWallZone.GetPoint(ref nextIndex);
 
-                var position = _currentWallZone.GetCurrentPosition();
+                var direction = destination - transform.position;
+                direction.y = 0;
+                direction.Normalize();
+                _rigidbody.AddForce(direction.normalized * _speed - _rigidbody.velocity, ForceMode.VelocityChange);
 
-                position.y = transform.position.y;
-                transform.position = position;
+                //Ignore verticality
+                destination.y = transform.position.y;
+                if (Vector3.Distance(destination, transform.position) < 0.01f)
+                {
+                    _lineIndex = nextIndex;
+                }
 
-                _bodyObject.forward = _currentWallZone.GetCurrentForwardDirection();
-
-
+                if (_animationCommand != null)
+                    _animationCommand.WallMove();
             }
-
-
         }
 
     }
@@ -122,4 +128,6 @@ public class CharacterWallSneak : InputComponent
         };
 
     }
+
+
 }

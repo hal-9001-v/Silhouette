@@ -9,7 +9,6 @@ public class HeavyMob : MonoBehaviour
     [Header("References")]
     [SerializeField] Light _light;
 
-
     [Header("Settings")]
     [SerializeField] [Range(0.1f, 5)] float _patrolSpeed;
     [SerializeField] [Range(0.1f, 5)] float _pursueSpeed;
@@ -22,10 +21,6 @@ public class HeavyMob : MonoBehaviour
     [SerializeField] [Range(1f, 10)] float _meleePush;
     [SerializeField] [Range(1f, 10)] float _timeToRecover;
 
-
-
-
-
     Navigator _navigator;
     Sighter _sighter;
     Melee _melee;
@@ -37,6 +32,8 @@ public class HeavyMob : MonoBehaviour
 
     float _timeOutOfSight;
 
+    public bool avaliableForPatrol { get; private set; }
+
     enum MobState
     {
         Patrol,
@@ -44,7 +41,8 @@ public class HeavyMob : MonoBehaviour
         Pursue,
         AttackIdle,
         Stunned,
-        CheckPlace
+        CheckPlace,
+        Dead
 
     }
 
@@ -61,9 +59,11 @@ public class HeavyMob : MonoBehaviour
         _health.DeadAction += Die;
         _health.HurtAction += Hurt;
 
-        _currentState = MobState.Patrol;
+        _currentState = MobState.Idle;
 
+        avaliableForPatrol = true;
 
+        //Hide();
     }
 
     private void Start()
@@ -119,9 +119,26 @@ public class HeavyMob : MonoBehaviour
             case MobState.Stunned:
                 break;
 
+            case MobState.Dead:
+                break;
+
             default:
                 Debug.LogError("No such State!");
                 break;
+        }
+    }
+
+    public void SetPatrolRoute(PatrolRoute route)
+    {
+        if (avaliableForPatrol)
+        {
+            _navigator.SetPatrolRoute(route);
+
+            ChangeState(MobState.Patrol);
+
+            avaliableForPatrol = false;
+
+            //Show();
         }
     }
 
@@ -189,6 +206,10 @@ public class HeavyMob : MonoBehaviour
                 _navigator.Stop();
 
                 break;
+
+            case MobState.Dead:
+                _navigator.Stop();
+                break;
             default:
                 Debug.LogError("No such State!");
                 break;
@@ -200,17 +221,47 @@ public class HeavyMob : MonoBehaviour
 
     void Die(Vector3 source, float push, Transform hitter)
     {
+        Hide();
+
+        avaliableForPatrol = true;
+
+    }
+
+    void Hide()
+    {
         foreach (Renderer renderer in GetComponentsInChildren<Renderer>())
         {
             renderer.enabled = false;
-            enabled = false;
-
-            _light.enabled = false;
-            _navigator.Stop();
-
         }
+
+        foreach (Collider collider in GetComponentsInChildren<Collider>())
+        {
+            collider.enabled = false;
+        }
+
+        enabled = false;
+
+        _light.enabled = false;
+        _navigator.Stop();
     }
 
+    void Show()
+    {
+        foreach (Renderer renderer in GetComponentsInChildren<Renderer>())
+        {
+            renderer.enabled = true;
+        }
+
+        foreach (Collider collider in GetComponentsInChildren<Collider>())
+        {
+            collider.enabled = true;
+        }
+
+        enabled = true;
+
+        _light.enabled = true;
+        _navigator.Continue();
+    }
     void Hurt(Vector3 source, float push, Transform hitter)
     {
         if (_currentState != MobState.Pursue && _currentState != MobState.AttackIdle)

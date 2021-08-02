@@ -8,11 +8,11 @@ public class CollisionInteractable : MonoBehaviour
 {
     bool _enterDone;
     bool _exitDone;
-    [SerializeField]bool _enterOnlyOnce;
-    [SerializeField]bool _exitOnlyOnce;
+    [SerializeField] bool _enterOnlyOnce;
+    [SerializeField] bool _exitOnlyOnce;
 
-    [SerializeField]UnityEvent _enterEvent;
-    [SerializeField]UnityEvent _exitEvent;
+    [SerializeField] UnityEvent _enterEvent;
+    [SerializeField] UnityEvent _exitEvent;
 
     public void EnterInteraction()
     {
@@ -22,10 +22,11 @@ public class CollisionInteractable : MonoBehaviour
         _enterDone = true;
 
         _enterEvent.Invoke();
-       
+
     }
 
-    public void ExitInteraction() {
+    public void ExitInteraction()
+    {
         if (_exitOnlyOnce && _exitDone)
             return;
 
@@ -37,12 +38,14 @@ public class CollisionInteractable : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.GetComponent<InteractionTrigger>() != null) {
+        if (other.GetComponent<InteractionTrigger>() != null)
+        {
             EnterInteraction();
         }
     }
 
-    private void OnTriggerExit(Collider other) {
+    private void OnTriggerExit(Collider other)
+    {
         if (other.GetComponent<InteractionTrigger>() != null)
         {
             ExitInteraction();

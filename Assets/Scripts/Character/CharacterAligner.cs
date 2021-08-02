@@ -38,6 +38,9 @@ public class CharacterAligner : MonoBehaviour
             _totalTime = Vector3.Distance(_startingPosition, targetPosition) / speed;
             _elapsedTime = 0;
 
+            _rigidbody.detectCollisions = false;
+
+
             if (_animationCommand != null)
             {
                 _animationCommand.Align();
@@ -48,23 +51,34 @@ public class CharacterAligner : MonoBehaviour
 
     }
 
+    void StopAlign()
+    {
+        _isAligning = false;
+        _rigidbody.detectCollisions = true;
+        _rigidbody.useGravity = true;
+
+        if (_alignmentCallback != null)
+            _alignmentCallback.Invoke();
+    }
+
+    void CalculateAlignment()
+    {
+        _elapsedTime += Time.fixedDeltaTime;
+
+        transform.position = Vector3.Lerp(_startingPosition, _targetPosition, _elapsedTime / _totalTime);
+    }
+
     private void FixedUpdate()
     {
         if (_isAligning)
         {
             if (_totalTime <= _elapsedTime)
             {
-                _isAligning = false;
-                _rigidbody.useGravity = true;
-
-                if (_alignmentCallback != null)
-                    _alignmentCallback.Invoke();
+                StopAlign();
             }
             else
             {
-                _elapsedTime += Time.fixedDeltaTime;
-
-                transform.position = Vector3.Lerp(_startingPosition, _targetPosition, _elapsedTime / _totalTime);
+                CalculateAlignment();
             }
         }
     }

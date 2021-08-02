@@ -16,9 +16,10 @@ public class CharacterHook : InputComponent
 
     [Header("Settings")]
     [SerializeField] [Range(0.1f, 20)] float _range;
-    [SerializeField] [Range(0.1f, 10)] float _centerRange;
     [SerializeField] [Range(0.1f, 20)] float _speed;
-    [SerializeField] [Range(0.1f, 20)] float _approximationValue;
+    [SerializeField] [Range(0.1f, 2)] float _stopDistance;
+    [SerializeField] [Range(1f, 20)] float _maxDuration;
+    [SerializeField] LayerMask _blockingMask;
 
 
 
@@ -28,6 +29,10 @@ public class CharacterHook : InputComponent
     Hook[] _hooks;
 
     Hook _currentHook;
+
+    Coroutine _lifeSpan;
+
+    bool _pulling;
 
     Vector2 _screenCenter
     {
@@ -40,6 +45,32 @@ public class CharacterHook : InputComponent
     private void Awake()
     {
         _hooks = FindObjectsOfType<Hook>();
+    }
+
+    private void FixedUpdate()
+    {
+        if (_pulling && _currentHook != null)
+        {
+
+            if (Vector3.Distance(_currentHook.transform.position, transform.position) > _stopDistance)
+            {
+                PullToTarget(_currentHook.transform);
+
+            }
+            else
+            {
+                StopHook();
+            }
+        }
+
+    }
+
+    void PullToTarget(Transform target)
+    {
+        Vector3 currentDirection = (target.transform.position - _rigidbody.transform.position).normalized;
+
+        var targetVelocity = currentDirection * _speed - _rigidbody.velocity;
+        _rigidbody.AddForce(targetVelocity, ForceMode.VelocityChange);
     }
 
     void CheckHooks()
@@ -68,32 +99,23 @@ public class CharacterHook : InputComponent
         {
             _characterMovement.Lock();
 
-            StartCoroutine(PullCharacter(target.StoppingPlace, 0.3f));
+            _pulling = true;
+            _currentHook = target;
 
-            Debug.Log("Hooked");
+            //Debug.Log("Hooked");
+
+            _rigidbody.detectCollisions = false;
+
+            _lifeSpan = StartCoroutine(HookLifeSpan());
         }
 
     }
 
-    IEnumerator PullCharacter(Transform target, float stoppingDistance)
+    void StopHook()
     {
-        Vector3 currentDirection = (target.transform.position - _rigidbody.transform.position).normalized;
-        Vector3 previousDirection = currentDirection;
-        while (Vector3.Distance(target.position, _rigidbody.transform.position) > stoppingDistance)
-        {
-            //Dont let player getting stuck on aproximations
-            if (Vector3.Dot(currentDirection, previousDirection) < 0)
-            {
-                break;
-            }
-            currentDirection = (target.transform.position - _rigidbody.transform.position).normalized;
-            previousDirection = currentDirection;
-
-            _rigidbody.velocity = currentDirection * _speed;
-
-
-            yield return null;
-        }
+        //Character is in place
+        _pulling = false;
+        _rigidbody.detectCollisions = true;
 
         //What to do once hook has finished
         switch (_currentHook.EndingVelocity)
@@ -110,9 +132,8 @@ public class CharacterHook : InputComponent
 
         _characterMovement.Unlock();
 
+        StopCoroutine(_lifeSpan);
     }
-
-
 
     bool CanBeHooked(Hook hook)
     {
@@ -127,12 +148,22 @@ public class CharacterHook : InputComponent
 
         if (!(rawPositionWorld.y > _targetAim.rectTransform.position.y - Mathf.Abs(_targetAim.rectTransform.sizeDelta.y) * 0.5f)) return false;
 
+
         if (!(rawPositionWorld.y < _targetAim.rectTransform.position.y + Mathf.Abs(_targetAim.rectTransform.sizeDelta.y) * 0.5f)) return false;
 
+        Vector3 direction = hook.transform.position - transform.position;
+        direction.Normalize();
+
+        if (Physics.Raycast(transform.position, direction, _range, _blockingMask)) return false;
 
         return true;
     }
 
+    IEnumerator HookLifeSpan() {
+        yield return new WaitForSeconds(_maxDuration);
+
+        StopHook();
+    }
 
     public override void SetInput(PlatformMap input)
     {

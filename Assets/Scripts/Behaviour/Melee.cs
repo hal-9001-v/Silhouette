@@ -44,7 +44,7 @@ public class Melee : MonoBehaviour
         var health = coll.GetComponent<Health>();
         if (health)
         {
-            Debug.Log("HURT");
+            //Debug.Log("HURT");
             health.Hurt(_damage, pos, _push, transform);
 
             if (hitAction != null)

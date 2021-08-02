@@ -148,7 +148,7 @@ public class CharacterAnimationCommand : MonoBehaviour
 
     public void WallMove()
     {
-        _animator.SetBool(IDLINGBOOL, false);
+        //_animator.SetBool(IDLINGBOOL, false);
 
         _animator.SetBool(WALLINGBOOL, true);
         _animator.SetBool(WALLMOVINGBOOL, true);

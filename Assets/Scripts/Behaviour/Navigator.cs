@@ -9,7 +9,7 @@ public class Navigator : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] NavMeshAgent _navMeshAgent;
-    [SerializeField] Transform[] _patrolPoints;
+    [SerializeField] PatrolRoute _patrolRoute;
     [SerializeField] [Range(0.01f, 1)] float _patrolDistance = 0.1f;
     [Range(0.01f, 5)] float pursueDistance;
 
@@ -43,9 +43,9 @@ public class Navigator : MonoBehaviour
 
     void SetNextPatrolPoint()
     {
-        if (_patrolPoints != null && _patrolPoints.Length != 0)
+        if (_patrolRoute != null && _patrolRoute.patrolPoints.Length != 0)
         {
-            if (_currentPatrolPoint >= _patrolPoints.Length - 1)
+            if (_currentPatrolPoint >= _patrolRoute.patrolPoints.Length - 1)
             {
                 _currentPatrolPoint = 0;
             }
@@ -56,11 +56,19 @@ public class Navigator : MonoBehaviour
         }
     }
 
+    public void SetPatrolRoute(PatrolRoute route)
+    {
+        _patrolRoute = route;
+        _currentPatrolPoint = 0;
+
+        transform.position = route.patrolPoints[_currentPatrolPoint].position;
+    }
+
     public void Patrol(float speed)
     {
         _navMeshAgent.speed = speed;
 
-        _target = _patrolPoints[_currentPatrolPoint];
+        _target = _patrolRoute.patrolPoints[_currentPatrolPoint];
 
         _currentState = State.Patrol;
 
@@ -123,11 +131,11 @@ public class Navigator : MonoBehaviour
             {
                 //PATROL STATE
                 case State.Patrol:
+                    if (_patrolRoute == null) return;
                     if (Vector3.Distance(_navMeshAgent.transform.position, _target.position) < _patrolDistance)
                     {
                         SetNextPatrolPoint();
-                        _target = _patrolPoints[_currentPatrolPoint];
-
+                        _target = _patrolRoute.patrolPoints[_currentPatrolPoint];
 
                         if (patrolPointReachedAction != null)
                         {
@@ -158,37 +166,4 @@ public class Navigator : MonoBehaviour
         }
     }
 
-
-    private void OnDrawGizmos()
-    {
-        if (_patrolPoints != null)
-        {
-            for (int i = 0; i < _patrolPoints.Length; i++)
-            {
-                if (_patrolPoints[i] != null)
-                {
-
-                    if (i == 0)
-                        Gizmos.color = Color.blue;
-                    else
-                        Gizmos.color = Color.green;
-
-                    Gizmos.DrawCube(_patrolPoints[i].position, new Vector3(1f, 1f, 1f));
-
-                    if (i + 1 < _patrolPoints.Length && _patrolPoints[i + 1] != null)
-                    {
-                        Gizmos.DrawLine(_patrolPoints[i].position, _patrolPoints[i + 1].position);
-                    }
-                    else
-                    {
-                        Gizmos.DrawLine(_patrolPoints[i].position, _patrolPoints[0].position);
-                    }
-                }
-
-            }
-
-
-        }
-
-    }
 }
