@@ -34,6 +34,8 @@ public class CharacterHook : InputComponent
 
     bool _pulling;
 
+    int _lockCount;
+
     Vector2 _screenCenter
     {
         get
@@ -45,6 +47,20 @@ public class CharacterHook : InputComponent
     private void Awake()
     {
         _hooks = FindObjectsOfType<Hook>();
+    }
+    public void Lock()
+    {
+        _lockCount++;
+    }
+
+    public void Unlock()
+    {
+
+        if (_lockCount > 0) _lockCount--;
+        else
+        {
+            Debug.LogWarning("Lock Count is already 0, cant be freed!");
+        }
     }
 
     private void FixedUpdate()
@@ -95,7 +111,7 @@ public class CharacterHook : InputComponent
 
     void HookCharacter(Hook target)
     {
-        if (_rigidbody != null)
+        if (_rigidbody != null && _lockCount == 0)
         {
             _characterMovement.Lock();
 
@@ -159,7 +175,8 @@ public class CharacterHook : InputComponent
         return true;
     }
 
-    IEnumerator HookLifeSpan() {
+    IEnumerator HookLifeSpan()
+    {
         yield return new WaitForSeconds(_maxDuration);
 
         StopHook();

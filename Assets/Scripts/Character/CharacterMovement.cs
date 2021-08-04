@@ -338,7 +338,7 @@ public class CharacterMovement : InputComponent
         if (_lockCount > 0) _lockCount--;
         else
         {
-            Debug.LogWarning("Lock Count is already 0, cant be freed!");
+            //Debug.LogWarning("Lock Count is already 0, cant be freed!");
         }
     }
     private void MovePlayer(float speed, ForceMode mode)

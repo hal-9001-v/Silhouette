@@ -9,6 +9,11 @@ public class Binocucom : InputComponent
     [SerializeField] CanvasGroup _canvasGroup;
     [SerializeField] CinemachineVirtualCamera _camera;
 
+    [SerializeField] CharacterMovement _characterMovement;
+    [SerializeField] CharacterHook _characterHook;
+    [SerializeField] CharacterHook _characterMelee;
+    [SerializeField] CharacterHook _characterWallSneak;
+
     PlayerCamera _playerCamera;
 
     bool _displayed;
@@ -16,6 +21,7 @@ public class Binocucom : InputComponent
     private void Awake()
     {
         _playerCamera = FindObjectOfType<PlayerCamera>();
+        
     }
 
     void Start()
@@ -31,6 +37,11 @@ public class Binocucom : InputComponent
             _displayed = true;
 
             _playerCamera.SetActiveCamera(_camera, PlayerCamera.TypeOfActiveCamera.Binocucom);
+
+            if (_characterMovement != null) _characterMovement.Lock();
+            if (_characterHook != null) _characterHook.Lock();
+            if (_characterMelee != null) _characterMelee.Lock();
+            if (_characterWallSneak != null) _characterWallSneak.Lock();
         }
     }
 
@@ -42,6 +53,11 @@ public class Binocucom : InputComponent
             _displayed = false;
 
             _playerCamera.ResetCamera();
+
+            if (_characterMovement != null) _characterMovement.Unlock();
+            if (_characterHook != null) _characterHook.Lock();
+            if (_characterMelee != null) _characterMelee.Lock();
+            if (_characterWallSneak != null) _characterWallSneak.Lock();
         }
     }
 

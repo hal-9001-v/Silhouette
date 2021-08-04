@@ -66,13 +66,16 @@ public class Navigator : MonoBehaviour
 
     public void Patrol(float speed)
     {
-        _navMeshAgent.speed = speed;
+        if (_patrolRoute != null)
+        {
+            _navMeshAgent.speed = speed;
 
-        _target = _patrolRoute.patrolPoints[_currentPatrolPoint];
+            _target = _patrolRoute.patrolPoints[_currentPatrolPoint];
 
-        _currentState = State.Patrol;
+            _currentState = State.Patrol;
 
-        Continue();
+            Continue();
+        }
     }
 
     public void Pursue(float speed, Transform target)

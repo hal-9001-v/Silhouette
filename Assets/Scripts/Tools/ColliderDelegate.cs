@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class ColliderDelegate : MonoBehaviour
 {
+    //Collision is other, and Vector3 is the position of this collider at such collision
     public Action<Collision, Vector3> CollisionEnterAction;
     public Action<Collision, Vector3> CollisionStayAction;
     public Action<Collision, Vector3> CollisionExitAction;

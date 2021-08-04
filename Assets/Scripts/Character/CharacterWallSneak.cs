@@ -14,6 +14,8 @@ public class CharacterWallSneak : InputComponent
     [SerializeField] CharacterMovement _movement;
     [SerializeField] Rigidbody _rigidbody;
     [SerializeField] CharacterAnimationCommand _animationCommand;
+
+
     public LineRenderer Line;
 
     PlayerCamera _playerCamera;
@@ -28,11 +30,13 @@ public class CharacterWallSneak : InputComponent
     public bool Apply;
     Vector2 _input;
 
+    public bool atRightLimit;
+    public bool atLeftLimit;
+
     private void Awake()
     {
         _playerCamera = FindObjectOfType<PlayerCamera>();
     }
-
 
     private void FixedUpdate()
     {
@@ -89,18 +93,24 @@ public class CharacterWallSneak : InputComponent
             {
                 Vector3 destination;
                 int nextIndex;
-                if (_input.x < 0)
+                if (_input.x * _playerCamera.GetRight().x > 0)
                 {
+                    if (atRightLimit) return;
+
                     nextIndex = _lineIndex + 1;
                 }
                 else
                 {
+                    if (atLeftLimit) return;
+
                     nextIndex = _lineIndex - 1;
                 }
 
                 destination = _currentWallZone.GetPoint(ref nextIndex);
 
+
                 var direction = destination - transform.position;
+
                 direction.y = 0;
                 direction.Normalize();
                 _rigidbody.AddForce(direction.normalized * _speed - _rigidbody.velocity, ForceMode.VelocityChange);

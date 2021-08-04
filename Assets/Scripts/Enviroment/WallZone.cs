@@ -8,6 +8,10 @@ using UnityEngine.Events;
 public class WallZone : MonoBehaviour
 {
 
+    [Header("References")]
+    [SerializeField] Collider _rightLimit;
+    [SerializeField] Collider _leftLimit;
+
     [Header("Settings")]
     public Vector3 Direction;
     public LineRenderer line;
@@ -18,6 +22,7 @@ public class WallZone : MonoBehaviour
     [SerializeField] [Range(0.01f, 0.5f)] float _timeStep;
     [SerializeField] [Range(0, 3)] int _betweenPoints;
 
+
     private float _currentTime;
     CharacterWallSneak _player;
 
@@ -26,6 +31,55 @@ public class WallZone : MonoBehaviour
     private void Awake()
     {
         _player = FindObjectOfType<CharacterWallSneak>();
+
+        InitializeLimitColliders();
+    }
+
+    void InitializeLimitColliders()
+    {
+        if (_rightLimit != null)
+        {
+            ColliderDelegate colliderDelegate = _rightLimit.gameObject.AddComponent<ColliderDelegate>();
+
+            colliderDelegate.TriggerEnterAction += (coll, pos) =>
+            {
+                var other = coll.GetComponent<CharacterWallSneak>();
+
+                if (other != null)
+                    _player.atRightLimit = true;
+            };
+
+            colliderDelegate.TriggerExitAction += (coll, pos) =>
+            {
+                var other = coll.GetComponent<CharacterWallSneak>();
+
+                if (other != null)
+                    _player.atRightLimit = false;
+            };
+
+        }
+
+        if (_leftLimit != null)
+        {
+            ColliderDelegate colliderDelegate = _leftLimit.gameObject.AddComponent<ColliderDelegate>();
+
+            colliderDelegate.TriggerEnterAction += (coll, pos) =>
+            {
+                var other = coll.GetComponent<CharacterWallSneak>();
+
+                if (other != null)
+                    _player.atLeftLimit = true;
+            };
+
+            colliderDelegate.TriggerExitAction += (coll, pos) =>
+            {
+                var other = coll.GetComponent<CharacterWallSneak>();
+
+                if (other != null)
+                    _player.atLeftLimit = false;
+            };
+
+        }
     }
 
     public void StickPlayer()
