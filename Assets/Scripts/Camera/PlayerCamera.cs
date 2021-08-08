@@ -10,16 +10,15 @@ public class PlayerCamera : InputComponent
     [SerializeField] Transform _cameraFollow;
     [SerializeField] Transform _body;
     [SerializeField] CinemachineVirtualCamera _characterCamera;
-    [SerializeField] CinemachineVirtualCamera _binocucomCamera;
 
-    public CinemachineVirtualCamera ActiveCamera { get; private set; }
-    Coroutine _changeInputCoroutine;
-    bool _isBlendingCamera;
 
-    public TypeOfActiveCamera TypeOfCamera { get; private set; }
+    public CinemachineVirtualCamera activeCamera { get; private set; }
+    CinemachineVirtualCamera _previousCamera;
 
-    public Action StartBlendAction;
-    public Action EndBlendAction;
+    public TypeOfActiveCamera typeOfCamera { get; private set; }
+    TypeOfActiveCamera _previousType;
+
+    float _firstPersonX;
 
     [Header("Settings")]
     [Range(0.1f, 1)]
@@ -29,88 +28,77 @@ public class PlayerCamera : InputComponent
     {
         Player,
         Fixed,
+        Vent,
         Binocucom
     }
 
     CinemachineVirtualCamera[] _cameras;
-    CinemachineBrain _brain;
     Vector2 _inputRotation;
 
-    public override void SetInput(PlatformMap input)
-    {
-        input.Character.Camera.performed += ctx =>
-        {
-            _inputRotation = ctx.ReadValue<Vector2>();
-
-        };
-
-        input.Character.Camera.canceled += ctx =>
-        {
-            _inputRotation = Vector2.zero;
-        };
-
-
-    }
 
     private void Awake()
     {
         _cameras = FindObjectsOfType<CinemachineVirtualCamera>();
-        _brain = FindObjectOfType<CinemachineBrain>();
 
         SetActiveCamera(_characterCamera, TypeOfActiveCamera.Player);
     }
 
     public void SetActiveCamera(CinemachineVirtualCamera newActiveCamera, TypeOfActiveCamera type)
     {
-        if (!_isBlendingCamera)
+        if (activeCamera != null)
         {
+            _previousCamera = activeCamera;
+            _previousType = typeOfCamera;
 
-            if (StartBlendAction != null)
-            {
-                StartBlendAction.Invoke();
-            }
-
-            ActiveCamera = newActiveCamera;
-
-            float blendDuration = StartCameraBlend(newActiveCamera);
-
-
-            if (_changeInputCoroutine != null)
-            {
-                StopCoroutine(_changeInputCoroutine);
-            }
-
-            _changeInputCoroutine = StartCoroutine(UpdateCameraInput(blendDuration, type));
         }
+        else
+        {
+            _previousCamera = newActiveCamera;
+            _previousType = type;
+        }
+        _firstPersonX = 0;
 
-    }
+        activeCamera = newActiveCamera;
+        typeOfCamera = type;
 
-    float StartCameraBlend(CinemachineVirtualCamera targetCamera)
-    {
         foreach (CinemachineVirtualCamera camera in _cameras)
         {
             camera.enabled = false;
         }
 
-        targetCamera.enabled = true;
+        newActiveCamera.enabled = true;
 
-        if (_brain.ActiveBlend != null)
-            return _brain.ActiveBlend.Duration;
-        else
-            return 0;
+        /*
+        switch (type)
+        {
+            case TypeOfActiveCamera.Binocucom:
+                newActiveCamera.transform.position = _binocucomPosition.position;
+                break;
 
+            case TypeOfActiveCamera.Vent:
+                newActiveCamera.transform.position = _ventBinocucomPosition.position;
+                break;
+
+            default:
+                break;
+        }
+        */
     }
 
     public Vector3 GetForward()
     {
-        switch (TypeOfCamera)
+        switch (typeOfCamera)
         {
             case TypeOfActiveCamera.Player:
                 return _cameraFollow.forward;
             //break;
 
             case TypeOfActiveCamera.Fixed:
-                return ActiveCamera.transform.forward;
+                return activeCamera.transform.forward;
+            //break;
+
+            case TypeOfActiveCamera.Vent:
+                return activeCamera.transform.forward;
             //break;
 
             default:
@@ -121,14 +109,18 @@ public class PlayerCamera : InputComponent
 
     public Vector3 GetRight()
     {
-        switch (TypeOfCamera)
+        switch (typeOfCamera)
         {
             case TypeOfActiveCamera.Player:
                 return _cameraFollow.right;
             //break;
 
             case TypeOfActiveCamera.Fixed:
-                return ActiveCamera.transform.right;
+                return activeCamera.transform.right;
+            //break;
+
+            case TypeOfActiveCamera.Vent:
+                return activeCamera.transform.right;
             //break;
 
             default:
@@ -143,15 +135,9 @@ public class PlayerCamera : InputComponent
         SetActiveCamera(_characterCamera, TypeOfActiveCamera.Player);
     }
 
-    IEnumerator UpdateCameraInput(float time, TypeOfActiveCamera type)
+    public void ResetCameraToPrevious()
     {
-        yield return new WaitForSeconds(time);
-
-        TypeOfCamera = type;
-
-        _isBlendingCamera = false;
-
-        EndBlendAction.Invoke();
+        SetActiveCamera(_previousCamera, _previousType);
     }
 
     // Start is called before the first frame update
@@ -164,10 +150,10 @@ public class PlayerCamera : InputComponent
     }
 
     // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
 
-        switch (TypeOfCamera)
+        switch (typeOfCamera)
         {
             case TypeOfActiveCamera.Player:
                 PlayerCameraRotation();
@@ -175,6 +161,9 @@ public class PlayerCamera : InputComponent
 
             case TypeOfActiveCamera.Binocucom:
                 BinocucomRotation();
+                break;
+            case TypeOfActiveCamera.Vent:
+                VentCameraRotation();
                 break;
 
             default:
@@ -186,24 +175,6 @@ public class PlayerCamera : InputComponent
     {
         if (_cameraFollow != null && _inputRotation != Vector2.zero)
         {
-
-            /*
-            Vector3 rotation = new Vector3();
-
-            rotation.x = _inputRotation.y* _mouseSensitivity;
-            rotation.y = _inputRotation.x * _mouseSensitivity;
-            rotation.z = 0;
-
-            _cameraFollow.Rotate(rotation);
-
-            var angle = _cameraFollow.eulerAngles;
-
-            angle.z = 0;
-
-            _cameraFollow.eulerAngles = angle;
-            */
-
-
             Quaternion nextRotation = _cameraFollow.transform.rotation;
             nextRotation *= Quaternion.AngleAxis(-_inputRotation.y * _mouseSensitivity, Vector3.right);
             nextRotation *= Quaternion.AngleAxis(_inputRotation.x * _mouseSensitivity, Vector3.up);
@@ -229,26 +200,66 @@ public class PlayerCamera : InputComponent
         }
     }
 
+    void VentCameraRotation()
+    {
+        if (_body != null && activeCamera != null)
+        {/*
+            //Rotate Camera on Vertical Axis
+            var rotation = Vector3.zero;
+            rotation.x = -_inputRotation.y * _mouseSensitivity;
+            activeCamera.transform.Rotate(rotation);
+
+            //Clamp Camera on Vertical Axis
+            rotation = activeCamera.transform.localEulerAngles;
+            rotation.x = Mathf.Clamp(rotation.x, 30, 150);
+            activeCamera.transform.localEulerAngles = rotation;*/
+
+            activeCamera.transform.forward = _body.forward;
+        }
+    }
+
     void BinocucomRotation()
     {
-        if (_body != null && _binocucomCamera != null && _inputRotation != Vector2.zero)
+        if (_body != null && activeCamera != null && _inputRotation != Vector2.zero)
         {
 
             //Rotate Player towards direction
-            Vector3 rotation = Vector3.zero;
-            rotation.y = _inputRotation.x * _mouseSensitivity;
-            _body.Rotate(rotation);
+            float rotation = 0;
+            rotation = _inputRotation.x * _mouseSensitivity;
+            //_body.Rotate(Quaternion.AngleAxis(rotation, Vector3.up));
 
             //Rotate Camera on Vertical Axis
-            rotation = Vector3.zero;
-            rotation.x = -_inputRotation.y * _mouseSensitivity;
-            _binocucomCamera.transform.Rotate(rotation);
+            _firstPersonX -= _inputRotation.y * _mouseSensitivity;
+            //activeCamera.transform.Rotate(rotation);
 
             //Clamp Camera on Vertical Axis
-            rotation = _binocucomCamera.transform.localEulerAngles;
-            rotation.x = Mathf.Clamp(rotation.x, 30, 150);
-            _binocucomCamera.transform.localEulerAngles = rotation;
+            //rotation = activeCamera.transform.eulerAngles;
+            //rotation.x = Mathf.Clamp(rotation.x, -40, 40);
+
+            _firstPersonX = Mathf.Clamp(_firstPersonX, -40, 40);
+
+            activeCamera.transform.rotation = Quaternion.Euler(_firstPersonX, activeCamera.transform.eulerAngles.y + rotation, 0);
 
         }
+    }
+
+    public override void SetInput(PlatformMap input)
+    {
+        input.Character.Camera.performed += ctx =>
+        {
+            _inputRotation = ctx.ReadValue<Vector2>();
+
+        };
+
+        input.Character.Camera.canceled += ctx =>
+        {
+            _inputRotation = Vector2.zero;
+        };
+
+    }
+
+    private void OnDrawGizmos()
+    {
+        //Gizmos.DrawWireSphere(_ventBinocucomPosition.position, 0.1f);
     }
 }

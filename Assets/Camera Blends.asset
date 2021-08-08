@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Camera Blends
   m_EditorClassIdentifier: 
   m_CustomBlends:
-  - m_From: Binocucom Camera
+  - m_From: First Person Camera
     m_To: '**ANY CAMERA**'
     m_Blend:
       m_Style: 0
@@ -25,7 +25,7 @@ MonoBehaviour:
         m_PostInfinity: 0
         m_RotationOrder: 0
   - m_From: '**ANY CAMERA**'
-    m_To: Binocucom Camera
+    m_To: First Person Camera
     m_Blend:
       m_Style: 0
       m_Time: 2

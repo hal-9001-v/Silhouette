@@ -76,6 +76,30 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "BinocucomScroll",
+                    "type": "Value",
+                    "id": "40e75d90-1ac2-445b-9be7-76000bfc1fc0",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Crawl",
+                    "type": "Button",
+                    "id": "6f84782d-645e-44e7-830f-de78fa538046",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Sprint",
+                    "type": "Button",
+                    "id": "5c4f60e7-2035-4931-b3a7-6cfc9574c1a9",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -203,7 +227,7 @@
                 {
                     "name": "",
                     "id": "5d7066a9-8f88-4e84-b07c-9a4f034c22e5",
-                    "path": "<Keyboard>/shift",
+                    "path": "<Keyboard>/ctrl",
                     "interactions": "",
                     "processors": "",
                     "groups": "Normal",
@@ -252,6 +276,39 @@
                     "processors": "",
                     "groups": "Normal",
                     "action": "Attack",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "506d5e1b-bf99-4421-93aa-cd3622610872",
+                    "path": "<Mouse>/scroll",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "BinocucomScroll",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9a60a368-5c32-4ba3-ad91-b1f415c20e5a",
+                    "path": "<Keyboard>/c",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Crawl",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7ce3fa3e-7270-4460-a3e5-a786a85be021",
+                    "path": "<Keyboard>/shift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Sprint",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

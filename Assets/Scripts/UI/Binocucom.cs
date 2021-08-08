@@ -8,12 +8,19 @@ public class Binocucom : InputComponent
     [Header("References")]
     [SerializeField] CanvasGroup _canvasGroup;
     [SerializeField] CinemachineVirtualCamera _camera;
+    [SerializeField] Transform _standCameraPosition;
+    [SerializeField] Transform _crawlCameraPosition;
 
     [SerializeField] CharacterMovement _characterMovement;
     [SerializeField] CharacterHook _characterHook;
     [SerializeField] CharacterHook _characterMelee;
-    [SerializeField] CharacterHook _characterWallSneak;
+    [SerializeField] CharacterWallSneak _characterWallSneak;
+    [SerializeField] CharacterVent _characterVent;
 
+    [Header("Settings")]
+    [SerializeField] [Range(0f, 100)] float _minFOV = 30;
+    [SerializeField] [Range(0f, 100)] float _maxFOV = 80;
+    [SerializeField] [Range(0f, 5)] float _scrollChange = 80;
     PlayerCamera _playerCamera;
 
     bool _displayed;
@@ -21,7 +28,7 @@ public class Binocucom : InputComponent
     private void Awake()
     {
         _playerCamera = FindObjectOfType<PlayerCamera>();
-        
+
     }
 
     void Start()
@@ -31,33 +38,63 @@ public class Binocucom : InputComponent
 
     public void DisplayBinocucom()
     {
-        if (_canvasGroup != null && _playerCamera != null && _camera != null)
+
+        if (_canvasGroup != null && _playerCamera != null)
         {
+            if (_characterMovement.isCrawling || _characterVent.isOnVent) _camera.transform.position = _crawlCameraPosition.position;
+            else _camera.transform.position = _standCameraPosition.position;
+
+            _camera.m_Lens.FieldOfView = _maxFOV;
             _canvasGroup.alpha = 1;
             _displayed = true;
 
             _playerCamera.SetActiveCamera(_camera, PlayerCamera.TypeOfActiveCamera.Binocucom);
 
-            if (_characterMovement != null) _characterMovement.Lock();
-            if (_characterHook != null) _characterHook.Lock();
-            if (_characterMelee != null) _characterMelee.Lock();
-            if (_characterWallSneak != null) _characterWallSneak.Lock();
+            if (_characterMovement != null) _characterMovement.semaphore.Lock();
+            if (_characterHook != null) _characterHook.semaphore.Lock();
+            if (_characterMelee != null) _characterMelee.semaphore.Lock();
+            if (_characterWallSneak != null) _characterWallSneak.semaphore.Lock();
         }
     }
 
-    public void HideBinocucom()
+    void HideBinocucom()
     {
         if (_canvasGroup != null && _playerCamera != null)
         {
             _canvasGroup.alpha = 0;
             _displayed = false;
 
-            _playerCamera.ResetCamera();
+            _playerCamera.ResetCameraToPrevious();
 
-            if (_characterMovement != null) _characterMovement.Unlock();
-            if (_characterHook != null) _characterHook.Lock();
-            if (_characterMelee != null) _characterMelee.Lock();
-            if (_characterWallSneak != null) _characterWallSneak.Lock();
+            if (_characterMovement != null) _characterMovement.semaphore.Unlock();
+            if (_characterHook != null) _characterHook.semaphore.Unlock();
+            if (_characterMelee != null) _characterMelee.semaphore.Unlock();
+            if (_characterWallSneak != null) _characterWallSneak.semaphore.Unlock();
+        }
+    }
+
+    public void SightScroll(bool augment)
+    {
+        if (_displayed)
+        {
+
+            if (augment)
+            {
+                if (_camera.m_Lens.FieldOfView < _maxFOV)
+                {
+                    _camera.m_Lens.FieldOfView += _scrollChange;
+                }
+
+            }
+            else
+            {
+
+                if (_camera.m_Lens.FieldOfView > _minFOV)
+                {
+                    _camera.m_Lens.FieldOfView -= _scrollChange;
+                }
+            }
+
         }
     }
 
@@ -72,6 +109,19 @@ public class Binocucom : InputComponent
             else
             {
                 DisplayBinocucom();
+            }
+
+        };
+
+        input.Character.BinocucomScroll.performed += ctx =>
+        {
+            if (ctx.ReadValue<Vector2>().y > 0)
+            {
+                SightScroll(false);
+            }
+            else
+            {
+                SightScroll(true);
             }
 
         };

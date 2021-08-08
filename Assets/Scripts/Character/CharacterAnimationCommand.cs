@@ -115,14 +115,19 @@ public class CharacterAnimationCommand : MonoBehaviour
 
     }
 
+    public void CreepIdle() { }
+
     public void Creep()
     {
         _animator.SetTrigger(CREEPTRIGGER);
         _animator.SetBool(CREEPINGBOOL, true);
         _animator.SetBool(RUNNINGBOOL, false);
-        _animator.SetBool(IDLINGBOOL, false);
+        //_animator.SetBool(IDLINGBOOL, false);
     }
 
+    public void Crawl() { }
+
+    public void CrawlIdle() { }
 
     public void Jump()
     {

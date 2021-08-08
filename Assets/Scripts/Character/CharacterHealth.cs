@@ -40,19 +40,19 @@ public class CharacterHealth : MonoBehaviour
         Vector3 pushDirection = _characterMovement.transform.position - source;
         pushDirection.y = pushDirection.magnitude / 3;
 
-        _characterMovement.Launch(pushDirection.normalized * push);
+        _characterMovement.Push(pushDirection.normalized * push);
 
 
     }
 
     IEnumerator KnockUpCharacter(float duration)
     {
-        _characterMovement.Lock();
+        _characterMovement.semaphore.Lock();
         _health.CanGetHurt = false;
         yield return new WaitForSeconds(duration);
         _health.CanGetHurt = true;
 
-        _characterMovement.Unlock();
+        _characterMovement.semaphore.Unlock();
     }
 
     void KillPlayer(Vector3 source, float push, Transform hitter)

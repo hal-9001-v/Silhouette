@@ -7,7 +7,6 @@ using UnityEngine.Events;
 
 public class WallZone : MonoBehaviour
 {
-
     [Header("References")]
     [SerializeField] Collider _rightLimit;
     [SerializeField] Collider _leftLimit;

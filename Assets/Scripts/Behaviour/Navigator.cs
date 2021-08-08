@@ -11,7 +11,8 @@ public class Navigator : MonoBehaviour
     [SerializeField] NavMeshAgent _navMeshAgent;
     [SerializeField] PatrolRoute _patrolRoute;
     [SerializeField] [Range(0.01f, 1)] float _patrolDistance = 0.1f;
-    [Range(0.01f, 5)] float pursueDistance;
+    [SerializeField] [Range(0.01f, 5)] float _pursueDistance = 0.1f;
+    [SerializeField] [Range(0.01f, 5)] float _checkingPlaceDistance = 0.1f;
 
     public Action patrolPointReachedAction;
     public Action pursueReachedAction;
@@ -21,6 +22,7 @@ public class Navigator : MonoBehaviour
     bool _apply;
 
     Transform _target;
+    EnviromentInfo _targetEnviromentInfo;
 
     //Used for an specific position with no changes
     Vector3 _targetPosition;
@@ -39,6 +41,7 @@ public class Navigator : MonoBehaviour
     {
         _currentPatrolPoint = -1;
         SetNextPatrolPoint();
+
     }
 
     void SetNextPatrolPoint()
@@ -83,6 +86,7 @@ public class Navigator : MonoBehaviour
         _navMeshAgent.speed = speed;
 
         _target = target;
+        _targetEnviromentInfo = _target.GetComponent<EnviromentInfo>();
 
         _currentState = State.Pursue;
 
@@ -121,14 +125,12 @@ public class Navigator : MonoBehaviour
             {
                 //Update Target's position. SetDestination works with Vector3
                 _navMeshAgent.SetDestination(_target.position);
-
             }
             else
             {
                 //If there is no  target, there is no point on Fixed Update since it moves character towards target
                 return;
             }
-
 
             switch (_currentState)
             {
@@ -149,7 +151,7 @@ public class Navigator : MonoBehaviour
 
                 //PURSUE STATE
                 case State.Pursue:
-                    if (Vector3.Distance(_navMeshAgent.transform.position, _target.position) < pursueDistance)
+                    if (Vector3.Distance(_navMeshAgent.transform.position, _target.position) < _pursueDistance)
                     {
                         if (patrolPointReachedAction != null)
                             pursueReachedAction.Invoke();
@@ -159,6 +161,14 @@ public class Navigator : MonoBehaviour
                 case State.GoingToPosition:
 
                     _navMeshAgent.SetDestination(_targetPosition);
+
+                    if (Vector3.Distance(_navMeshAgent.transform.position, _targetPosition) < _checkingPlaceDistance)
+                    {
+                        if (targetPositionReachedAction != null)
+                        {
+                            targetPositionReachedAction.Invoke();
+                        }
+                    }
                     break;
 
                 default:

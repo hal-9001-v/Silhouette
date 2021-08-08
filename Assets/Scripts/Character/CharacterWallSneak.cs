@@ -33,9 +33,13 @@ public class CharacterWallSneak : InputComponent
     public bool atRightLimit;
     public bool atLeftLimit;
 
+    public Semaphore semaphore;
+
     private void Awake()
     {
         _playerCamera = FindObjectOfType<PlayerCamera>();
+
+        semaphore = new Semaphore();
     }
 
     private void FixedUpdate()
@@ -48,9 +52,9 @@ public class CharacterWallSneak : InputComponent
 
     public void StickToWall(WallZone wallZone)
     {
-        if (_aligner != null)
+        if (_aligner != null && semaphore.isOpen)
         {
-            _movement.Lock();
+            _movement.semaphore.Lock();
 
             _currentWallZone = wallZone;
 
@@ -70,7 +74,7 @@ public class CharacterWallSneak : InputComponent
     public void UnstickToWall()
     {
         Apply = false;
-        _movement.Unlock();
+        _movement.semaphore.Unlock();
 
         if (_animationCommand != null)
             _animationCommand.Idle();

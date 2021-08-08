@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Navigator), typeof(Sighter), typeof(Melee))]
-[RequireComponent(typeof(Health))]
+[RequireComponent(typeof(Health), typeof(Listener))]
 public class HeavyMob : MonoBehaviour
 {
     [Header("References")]
@@ -14,17 +14,23 @@ public class HeavyMob : MonoBehaviour
     [SerializeField] [Range(0.1f, 5)] float _pursueSpeed;
     [SerializeField] [Range(1f, 10)] float _maxTimeOutOfSight;
 
+    [SerializeField] Color _patrolColor = Color.blue;
+    [SerializeField] Color _distressedColor = Color.yellow;
+    [SerializeField] Color _fightColor = Color.red;
+
     [Header("Attack")]
     [SerializeField] [Range(1f, 10)] float _meleeRange;
     [SerializeField] [Range(1f, 10)] float _meleeDamage;
     [SerializeField] [Range(1f, 10)] float _meleeDuration;
     [SerializeField] [Range(1f, 10)] float _meleePush;
     [SerializeField] [Range(1f, 10)] float _timeToRecover;
+    [SerializeField] [Range(1f, 10)] float _timeCheckingPlace;
 
     Navigator _navigator;
     Sighter _sighter;
     Melee _melee;
     Health _health;
+    Listener _listener;
 
     MobState _currentState;
 
@@ -32,7 +38,19 @@ public class HeavyMob : MonoBehaviour
 
     float _timeOutOfSight;
 
+    Vector3 _checkPlace;
+
+    Coroutine _currentTimeCoroutine;
+
     public bool avaliableForPatrol { get; private set; }
+
+    [SerializeField] TypeOfMob _typeOfMob;
+
+    enum TypeOfMob
+    {
+        heavy,
+        light
+    }
 
     enum MobState
     {
@@ -49,6 +67,18 @@ public class HeavyMob : MonoBehaviour
     private void Awake()
     {
         _navigator = GetComponent<Navigator>();
+
+        _navigator.targetPositionReachedAction += () =>
+        {
+            _navigator.Stop();
+
+            if (_currentTimeCoroutine != null)
+                StopCoroutine(_currentTimeCoroutine);
+
+            _currentTimeCoroutine = StartCoroutine(CheckPlaceTime(_timeCheckingPlace));
+
+        };
+
         _sighter = GetComponent<Sighter>();
 
         _melee = GetComponent<Melee>();
@@ -58,6 +88,10 @@ public class HeavyMob : MonoBehaviour
         _health = GetComponent<Health>();
         _health.DeadAction += Die;
         _health.HurtAction += Hurt;
+
+
+        _listener = GetComponent<Listener>();
+        _listener.hearedNoiseAction += NoiseHeared;
 
         _currentState = MobState.Idle;
 
@@ -113,6 +147,17 @@ public class HeavyMob : MonoBehaviour
 
                 break;
 
+            case MobState.CheckPlace:
+                if (CheckForTarget())
+                {
+                    ChangeState(MobState.Pursue);
+                }
+
+
+
+                break;
+
+
             case MobState.AttackIdle:
                 break;
 
@@ -140,6 +185,11 @@ public class HeavyMob : MonoBehaviour
 
             //Show();
         }
+    }
+
+    void NoiseHeared(Vector3 position, Noiser source)
+    {
+        GoCheckPlace(position);
     }
 
     void TargetHit()
@@ -182,11 +232,13 @@ public class HeavyMob : MonoBehaviour
             case MobState.Patrol:
                 _navigator.Patrol(_patrolSpeed);
 
-                _light.color = Color.white;
+                _light.color = _patrolColor;
                 break;
 
             case MobState.Idle:
                 _navigator.Stop();
+
+                _light.color = _patrolColor;
                 break;
 
 
@@ -194,21 +246,29 @@ public class HeavyMob : MonoBehaviour
                 _navigator.Pursue(_pursueSpeed, _target);
                 _timeOutOfSight = 0;
 
-                _light.color = Color.red;
+                _light.color = _fightColor;
                 break;
 
             case MobState.AttackIdle:
                 _navigator.Stop();
 
+                _light.color = _fightColor;
                 break;
 
             case MobState.Stunned:
                 _navigator.Stop();
 
+                _light.color = _distressedColor;
                 break;
 
             case MobState.Dead:
                 _navigator.Stop();
+                break;
+
+            case MobState.CheckPlace:
+                _navigator.GoToPosition(_pursueSpeed, _checkPlace);
+
+                _light.color = _distressedColor;
                 break;
             default:
                 Debug.LogError("No such State!");
@@ -282,7 +342,10 @@ public class HeavyMob : MonoBehaviour
 
         var angles = transform.eulerAngles;
 
-        StartCoroutine(RecoverFromStun(_timeToRecover, angles, hitSource, hitter));
+        if (_currentTimeCoroutine != null)
+            StopCoroutine(_currentTimeCoroutine);
+
+        _currentTimeCoroutine = StartCoroutine(RecoverFromStun(_timeToRecover, angles, hitSource, hitter));
 
         angles.z = 0;
 
@@ -300,10 +363,17 @@ public class HeavyMob : MonoBehaviour
         ChangeState(MobState.Pursue);
     }
 
+    IEnumerator CheckPlaceTime(float time)
+    {
+        yield return new WaitForSeconds(time);
+
+        ChangeState(MobState.Patrol);
+    }
+
     public void GoCheckPlace(Vector3 position)
     {
+        _checkPlace = position;
         ChangeState(MobState.CheckPlace);
-
 
     }
 

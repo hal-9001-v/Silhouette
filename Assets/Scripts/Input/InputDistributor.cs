@@ -21,12 +21,6 @@ public class InputDistributor : MonoBehaviour
             _inputMap.Enable();
 
             PlayerCamera pc = FindObjectOfType<PlayerCamera>();
-
-            if (pc != null) {
-                pc.StartBlendAction += _inputMap.Disable;
-
-                pc.EndBlendAction += _inputMap.Enable;
-            }
         }
 
     }

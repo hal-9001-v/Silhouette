@@ -6,7 +6,6 @@ using UnityEngine.UI;
 
 public class CharacterHook : InputComponent
 {
-
     [Header("References")]
     [SerializeField] Rigidbody _rigidbody;
     [SerializeField] Camera _camera;
@@ -21,8 +20,6 @@ public class CharacterHook : InputComponent
     [SerializeField] [Range(1f, 20)] float _maxDuration;
     [SerializeField] LayerMask _blockingMask;
 
-
-
     [Header("Gizmos")]
     [SerializeField] Color _gizmosColor = Color.yellow;
 
@@ -34,8 +31,6 @@ public class CharacterHook : InputComponent
 
     bool _pulling;
 
-    int _lockCount;
-
     Vector2 _screenCenter
     {
         get
@@ -44,23 +39,12 @@ public class CharacterHook : InputComponent
         }
     }
 
+    public Semaphore semaphore;
+
     private void Awake()
     {
         _hooks = FindObjectsOfType<Hook>();
-    }
-    public void Lock()
-    {
-        _lockCount++;
-    }
-
-    public void Unlock()
-    {
-
-        if (_lockCount > 0) _lockCount--;
-        else
-        {
-            Debug.LogWarning("Lock Count is already 0, cant be freed!");
-        }
+        semaphore = new Semaphore();
     }
 
     private void FixedUpdate()
@@ -111,9 +95,9 @@ public class CharacterHook : InputComponent
 
     void HookCharacter(Hook target)
     {
-        if (_rigidbody != null && _lockCount == 0)
+        if (_rigidbody != null && semaphore.isOpen)
         {
-            _characterMovement.Lock();
+            _characterMovement.semaphore.Lock();
 
             _pulling = true;
             _currentHook = target;
@@ -146,7 +130,7 @@ public class CharacterHook : InputComponent
                 break;
         }
 
-        _characterMovement.Unlock();
+        _characterMovement.semaphore.Unlock();
 
         StopCoroutine(_lifeSpan);
     }

@@ -12,33 +12,23 @@ public class CharacterMelee : InputComponent
     [SerializeField] [Range(0, 20)] float _hitDuration;
     Melee _melee;
 
-    int _lockCount;
+    public Semaphore semaphore;
 
     private void Awake()
     {
         _melee = GetComponent<Melee>();
+
+        semaphore = new Semaphore();
     }
 
-    public void Lock()
-    {
-        _lockCount++;
-    }
 
-    public void Unlock()
-    {
 
-        if (_lockCount > 0) _lockCount--;
-        else
-        {
-            Debug.LogWarning("Lock Count is already 0, cant be freed!");
-        }
-    }
 
     public override void SetInput(PlatformMap input)
     {
         input.Character.Attack.performed += ctx =>
         {
-            if (_lockCount == 0)
+            if (semaphore.isOpen)
                 _melee.Attack(_damage, _push, _hitDuration);
         };
     }

@@ -89,6 +89,30 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""BinocucomScroll"",
+                    ""type"": ""Value"",
+                    ""id"": ""40e75d90-1ac2-445b-9be7-76000bfc1fc0"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""Crawl"",
+                    ""type"": ""Button"",
+                    ""id"": ""6f84782d-645e-44e7-830f-de78fa538046"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""Sprint"",
+                    ""type"": ""Button"",
+                    ""id"": ""5c4f60e7-2035-4931-b3a7-6cfc9574c1a9"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -216,7 +240,7 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""5d7066a9-8f88-4e84-b07c-9a4f034c22e5"",
-                    ""path"": ""<Keyboard>/shift"",
+                    ""path"": ""<Keyboard>/ctrl"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Normal"",
@@ -267,6 +291,39 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                     ""action"": ""Attack"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""506d5e1b-bf99-4421-93aa-cd3622610872"",
+                    ""path"": ""<Mouse>/scroll"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BinocucomScroll"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9a60a368-5c32-4ba3-ad91-b1f415c20e5a"",
+                    ""path"": ""<Keyboard>/c"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Crawl"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7ce3fa3e-7270-4460-a3e5-a786a85be021"",
+                    ""path"": ""<Keyboard>/shift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Sprint"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -306,6 +363,9 @@ public class @PlatformMap : IInputActionCollection, IDisposable
         m_Character_Interact = m_Character.FindAction("Interact", throwIfNotFound: true);
         m_Character_Binocucom = m_Character.FindAction("Binocucom", throwIfNotFound: true);
         m_Character_Attack = m_Character.FindAction("Attack", throwIfNotFound: true);
+        m_Character_BinocucomScroll = m_Character.FindAction("BinocucomScroll", throwIfNotFound: true);
+        m_Character_Crawl = m_Character.FindAction("Crawl", throwIfNotFound: true);
+        m_Character_Sprint = m_Character.FindAction("Sprint", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -364,6 +424,9 @@ public class @PlatformMap : IInputActionCollection, IDisposable
     private readonly InputAction m_Character_Interact;
     private readonly InputAction m_Character_Binocucom;
     private readonly InputAction m_Character_Attack;
+    private readonly InputAction m_Character_BinocucomScroll;
+    private readonly InputAction m_Character_Crawl;
+    private readonly InputAction m_Character_Sprint;
     public struct CharacterActions
     {
         private @PlatformMap m_Wrapper;
@@ -377,6 +440,9 @@ public class @PlatformMap : IInputActionCollection, IDisposable
         public InputAction @Interact => m_Wrapper.m_Character_Interact;
         public InputAction @Binocucom => m_Wrapper.m_Character_Binocucom;
         public InputAction @Attack => m_Wrapper.m_Character_Attack;
+        public InputAction @BinocucomScroll => m_Wrapper.m_Character_BinocucomScroll;
+        public InputAction @Crawl => m_Wrapper.m_Character_Crawl;
+        public InputAction @Sprint => m_Wrapper.m_Character_Sprint;
         public InputActionMap Get() { return m_Wrapper.m_Character; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -413,6 +479,15 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                 @Attack.started -= m_Wrapper.m_CharacterActionsCallbackInterface.OnAttack;
                 @Attack.performed -= m_Wrapper.m_CharacterActionsCallbackInterface.OnAttack;
                 @Attack.canceled -= m_Wrapper.m_CharacterActionsCallbackInterface.OnAttack;
+                @BinocucomScroll.started -= m_Wrapper.m_CharacterActionsCallbackInterface.OnBinocucomScroll;
+                @BinocucomScroll.performed -= m_Wrapper.m_CharacterActionsCallbackInterface.OnBinocucomScroll;
+                @BinocucomScroll.canceled -= m_Wrapper.m_CharacterActionsCallbackInterface.OnBinocucomScroll;
+                @Crawl.started -= m_Wrapper.m_CharacterActionsCallbackInterface.OnCrawl;
+                @Crawl.performed -= m_Wrapper.m_CharacterActionsCallbackInterface.OnCrawl;
+                @Crawl.canceled -= m_Wrapper.m_CharacterActionsCallbackInterface.OnCrawl;
+                @Sprint.started -= m_Wrapper.m_CharacterActionsCallbackInterface.OnSprint;
+                @Sprint.performed -= m_Wrapper.m_CharacterActionsCallbackInterface.OnSprint;
+                @Sprint.canceled -= m_Wrapper.m_CharacterActionsCallbackInterface.OnSprint;
             }
             m_Wrapper.m_CharacterActionsCallbackInterface = instance;
             if (instance != null)
@@ -444,6 +519,15 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                 @Attack.started += instance.OnAttack;
                 @Attack.performed += instance.OnAttack;
                 @Attack.canceled += instance.OnAttack;
+                @BinocucomScroll.started += instance.OnBinocucomScroll;
+                @BinocucomScroll.performed += instance.OnBinocucomScroll;
+                @BinocucomScroll.canceled += instance.OnBinocucomScroll;
+                @Crawl.started += instance.OnCrawl;
+                @Crawl.performed += instance.OnCrawl;
+                @Crawl.canceled += instance.OnCrawl;
+                @Sprint.started += instance.OnSprint;
+                @Sprint.performed += instance.OnSprint;
+                @Sprint.canceled += instance.OnSprint;
             }
         }
     }
@@ -468,5 +552,8 @@ public class @PlatformMap : IInputActionCollection, IDisposable
         void OnInteract(InputAction.CallbackContext context);
         void OnBinocucom(InputAction.CallbackContext context);
         void OnAttack(InputAction.CallbackContext context);
+        void OnBinocucomScroll(InputAction.CallbackContext context);
+        void OnCrawl(InputAction.CallbackContext context);
+        void OnSprint(InputAction.CallbackContext context);
     }
 }

@@ -19,6 +19,7 @@ GameObject:
   - component: {fileID: 7703961123314187056}
   - component: {fileID: 7703961123314187070}
   - component: {fileID: 7703961123314187057}
+  - component: {fileID: 4724956939857942217}
   m_Layer: 0
   m_Name: Bad guy
   m_TagString: Untagged
@@ -142,6 +143,8 @@ MonoBehaviour:
   _navMeshAgent: {fileID: 7703961123314187060}
   _patrolRoute: {fileID: 0}
   _patrolDistance: 0.1
+  _pursueDistance: 5
+  _checkingPlaceDistance: 1
 --- !u!114 &7703961123314187058
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -158,11 +161,16 @@ MonoBehaviour:
   _patrolSpeed: 1
   _pursueSpeed: 2
   _maxTimeOutOfSight: 10
+  _patrolColor: {r: 0, g: 0, b: 1, a: 1}
+  _distressedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _fightColor: {r: 1, g: 0, b: 0, a: 1}
   _meleeRange: 1
   _meleeDamage: 2
   _meleeDuration: 2
   _meleePush: 8
   _timeToRecover: 2
+  _timeCheckingPlace: 3
+  _typeOfMob: 0
 --- !u!114 &7703961123314187059
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -221,6 +229,21 @@ MonoBehaviour:
   CanGetHurt: 1
   CurrentHealth: 0
   CharacterType: 1
+--- !u!114 &4724956939857942217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7703961123314187051}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 773fcf4019d99fb47bfd18a8832b5791, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _range: 3
+  _gizmos: 1
+  _gizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!1 &7703961124540412737
 GameObject:
   m_ObjectHideFlags: 0
