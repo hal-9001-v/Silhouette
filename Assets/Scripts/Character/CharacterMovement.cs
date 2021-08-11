@@ -128,8 +128,6 @@ public class CharacterMovement : InputComponent
         }
     }
 
-
-
     public bool isGrounded
     {
         get
@@ -160,7 +158,14 @@ public class CharacterMovement : InputComponent
     {
         if (semaphore.isOpen)
         {
-            _characterBodyRotation.SetMovementRotation();
+            if (_moveInput != Vector2.zero)
+            {
+                _characterBodyRotation.SetMovementRotation(_rigidbody);
+            }
+            else
+            {
+                _characterBodyRotation.DisableRotation();
+            }
 
             //Look at next switch for state transition.
             switch (_currentState)

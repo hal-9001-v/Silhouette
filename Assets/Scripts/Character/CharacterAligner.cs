@@ -27,7 +27,6 @@ public class CharacterAligner : MonoBehaviour
     {
         if (_rigidbody != null)
         {
-
             _rigidbody.useGravity = false;
             _isAligning = true;
 

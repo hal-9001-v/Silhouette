@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 
-[RequireComponent(typeof(CheckPointTracker))]
 public class Health : MonoBehaviour
 {
     [Header("References")]

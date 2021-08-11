@@ -7,8 +7,10 @@ public class CharacterVent : InputComponent
 {
     [Header("References")]
     [SerializeField] CinemachineVirtualCamera _camera;
+    [SerializeField] Transform _cameraPosition;
+
     [SerializeField] CharacterMovement _characterMovement;
-    [SerializeField] Transform _bodyObject;
+    [SerializeField] CharacterBodyRotation _characterBodyRotation;
     [SerializeField] Rigidbody _rigidbody;
 
     [SerializeField] Collider _basicCollider;
@@ -39,6 +41,8 @@ public class CharacterVent : InputComponent
         {
             isOnVent = true;
             _playerCamera.SetActiveCamera(_camera, PlayerCamera.TypeOfActiveCamera.Vent);
+            _camera.transform.position = _cameraPosition.position;
+            _characterBodyRotation.SetMovementRotation(_rigidbody);
 
             _characterMovement.semaphore.Lock();
 
@@ -98,26 +102,6 @@ public class CharacterVent : InputComponent
                 targetVelocity.y = 0;
 
                 _rigidbody.AddForce(targetVelocity, ForceMode.VelocityChange);
-
-                #endregion
-
-                #region Rotate Character Towards Direction
-
-                if (_bodyObject != null)
-                {
-                    Quaternion prevRotation = _bodyObject.rotation;
-                    if (_rigidbody.velocity != Vector3.zero)
-                    {
-
-                        Quaternion actualRot = Quaternion.LookRotation(_rigidbody.velocity);
-
-                        var rot = Quaternion.Lerp(prevRotation, actualRot, Time.deltaTime * _rotationLerp).eulerAngles;
-
-                        rot.z = 0;
-                        rot.x = 0;
-                        _bodyObject.transform.eulerAngles = rot;
-                    }
-                }
 
                 #endregion
 

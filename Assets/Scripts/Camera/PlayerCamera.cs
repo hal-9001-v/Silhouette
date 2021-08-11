@@ -24,6 +24,9 @@ public class PlayerCamera : InputComponent
     [Range(0.1f, 1)]
     [SerializeField] float _mouseSensitivity;
 
+    [Range(0.1f, 10)]
+    [SerializeField] float _padSensitivity;
+
     public enum TypeOfActiveCamera
     {
         Player,
@@ -33,7 +36,8 @@ public class PlayerCamera : InputComponent
     }
 
     CinemachineVirtualCamera[] _cameras;
-    Vector2 _inputRotation;
+    Vector2 _inputMouseRotation;
+    Vector2 _inputPadRotation;
 
 
     private void Awake()
@@ -143,7 +147,8 @@ public class PlayerCamera : InputComponent
     // Start is called before the first frame update
     void Start()
     {
-        _inputRotation = new Vector2();
+        _inputMouseRotation = new Vector2();
+        _inputPadRotation = new Vector2();
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -173,11 +178,12 @@ public class PlayerCamera : InputComponent
 
     void PlayerCameraRotation()
     {
-        if (_cameraFollow != null && _inputRotation != Vector2.zero)
+        if (_cameraFollow != null && (_inputMouseRotation != Vector2.zero || _inputPadRotation != Vector2.zero))
         {
             Quaternion nextRotation = _cameraFollow.transform.rotation;
-            nextRotation *= Quaternion.AngleAxis(-_inputRotation.y * _mouseSensitivity, Vector3.right);
-            nextRotation *= Quaternion.AngleAxis(_inputRotation.x * _mouseSensitivity, Vector3.up);
+
+            nextRotation *= Quaternion.AngleAxis(-(_inputMouseRotation.y * _mouseSensitivity + _inputPadRotation.y * _padSensitivity), Vector3.right);
+            nextRotation *= Quaternion.AngleAxis(_inputMouseRotation.x * _mouseSensitivity + +_inputPadRotation.x * _padSensitivity, Vector3.up);
 
             // _cameraFollow.rotation = Quaternion.Lerp(_cameraFollow.transform.rotation, nextRotation, Time.deltaTime * 1);
             _cameraFollow.rotation = nextRotation;
@@ -220,16 +226,17 @@ public class PlayerCamera : InputComponent
 
     void BinocucomRotation()
     {
-        if (_body != null && activeCamera != null && _inputRotation != Vector2.zero)
+        if (_body != null && activeCamera != null && (_inputMouseRotation != Vector2.zero || _inputPadRotation != Vector2.zero))
         {
 
             //Rotate Player towards direction
-            float rotation = 0;
-            rotation = _inputRotation.x * _mouseSensitivity;
+            float rotation;
+            rotation = _inputMouseRotation.x * _mouseSensitivity + _inputPadRotation.x * _padSensitivity;
+
             //_body.Rotate(Quaternion.AngleAxis(rotation, Vector3.up));
 
             //Rotate Camera on Vertical Axis
-            _firstPersonX -= _inputRotation.y * _mouseSensitivity;
+            _firstPersonX -= _inputMouseRotation.y * _mouseSensitivity + _inputPadRotation.y * _padSensitivity;
             //activeCamera.transform.Rotate(rotation);
 
             //Clamp Camera on Vertical Axis
@@ -245,15 +252,26 @@ public class PlayerCamera : InputComponent
 
     public override void SetInput(PlatformMap input)
     {
-        input.Character.Camera.performed += ctx =>
+        input.Character.MouseCamera.performed += ctx =>
         {
-            _inputRotation = ctx.ReadValue<Vector2>();
+            _inputMouseRotation = ctx.ReadValue<Vector2>();
 
         };
 
-        input.Character.Camera.canceled += ctx =>
+        input.Character.MouseCamera.canceled += ctx =>
         {
-            _inputRotation = Vector2.zero;
+            _inputMouseRotation = Vector2.zero;
+        };
+
+        input.Character.PadCamera.performed += ctx =>
+        {
+            _inputPadRotation = ctx.ReadValue<Vector2>();
+
+        };
+
+        input.Character.PadCamera.canceled += ctx =>
+        {
+            _inputPadRotation = Vector2.zero;
         };
 
     }

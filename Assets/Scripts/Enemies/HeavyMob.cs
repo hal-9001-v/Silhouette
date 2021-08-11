@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Navigator), typeof(Sighter), typeof(Melee))]
-[RequireComponent(typeof(Health), typeof(Listener))]
+[RequireComponent(typeof(Health), typeof(Listener), typeof(CharacterBodyRotation))]
 public class HeavyMob : MonoBehaviour
 {
     [Header("References")]
@@ -31,6 +31,7 @@ public class HeavyMob : MonoBehaviour
     Melee _melee;
     Health _health;
     Listener _listener;
+    CharacterBodyRotation _characterBodyRotation;
 
     MobState _currentState;
 
@@ -60,6 +61,7 @@ public class HeavyMob : MonoBehaviour
         AttackIdle,
         Stunned,
         CheckPlace,
+        CheckPlaceIdle,
         Dead
 
     }
@@ -95,6 +97,8 @@ public class HeavyMob : MonoBehaviour
 
         _currentState = MobState.Idle;
 
+        _characterBodyRotation = GetComponent<CharacterBodyRotation>();
+
         avaliableForPatrol = true;
 
         //Hide();
@@ -115,6 +119,8 @@ public class HeavyMob : MonoBehaviour
                 {
                     ChangeState(MobState.Pursue);
                 }
+
+                _characterBodyRotation.SetForward(_navigator.velocity);
 
                 break;
 
@@ -145,6 +151,7 @@ public class HeavyMob : MonoBehaviour
                     _melee.Attack(_meleeDamage, _meleePush, _meleeDuration);
                 }
 
+                _characterBodyRotation.SetForward(_navigator.velocity);
                 break;
 
             case MobState.CheckPlace:
@@ -152,13 +159,23 @@ public class HeavyMob : MonoBehaviour
                 {
                     ChangeState(MobState.Pursue);
                 }
+                _characterBodyRotation.SetForward(_navigator.velocity);
+                break;
 
+            case MobState.CheckPlaceIdle:
+                if (CheckForTarget())
+                {
+                    ChangeState(MobState.Pursue);
+                }
 
-
+                _characterBodyRotation.SetTargetPosition(_checkPlace);
                 break;
 
 
+
             case MobState.AttackIdle:
+
+                _characterBodyRotation.SetTargetRotation(_target);
                 break;
 
             case MobState.Stunned:
@@ -269,6 +286,14 @@ public class HeavyMob : MonoBehaviour
                 _navigator.GoToPosition(_pursueSpeed, _checkPlace);
 
                 _light.color = _distressedColor;
+                break;
+
+            case MobState.CheckPlaceIdle:
+                _navigator.Stop();
+                _characterBodyRotation.SetTargetPosition(_checkPlace);
+
+                _light.color = _distressedColor;
+
                 break;
             default:
                 Debug.LogError("No such State!");

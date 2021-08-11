@@ -7,7 +7,7 @@ public class CharacterBodyRotation : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] Transform _body;
-    [SerializeField] Rigidbody _rigidbody;
+    Rigidbody _rigidbody;
 
     [Header("Settings")]
     [SerializeField] [Range(0.1f, 10)] float _lerpFactor;
@@ -17,12 +17,18 @@ public class CharacterBodyRotation : MonoBehaviour
     public Semaphore semaphore;
 
     Transform _target;
+    Vector3 _targetPosition;
+
+    Vector3 _forward;
 
     public enum RotationType
     {
         Movement,
         LookAtTarget,
-        TargetForward
+        LookAtPosition,
+        TargetForward,
+        Forward,
+        None
     }
 
     private void Awake()
@@ -34,7 +40,6 @@ public class CharacterBodyRotation : MonoBehaviour
     {
         if (semaphore.isOpen)
         {
-
             switch (_rotationType)
             {
                 case RotationType.Movement:
@@ -46,56 +51,87 @@ public class CharacterBodyRotation : MonoBehaviour
                     break;
 
                 case RotationType.TargetForward:
-                    TargetForward(_target);
+                    TargetForwardRotation(_target);
+                    break;
+
+                case RotationType.LookAtPosition:
+                    TargetPositionRotation(_targetPosition);
+                    break;
+
+                case RotationType.Forward:
+                    ForwardRotation(_forward);
+                    break;
+
+                case RotationType.None:
+
                     break;
             }
         }
     }
 
-    private void TargetForward(Transform target)
-    {
-        if (_body != null && target != null)
-        {
-            var direction = target.forward;
-
-            var newForward = Vector3.Lerp(_body.forward, direction.normalized, Time.deltaTime * _lerpFactor);
-
-            newForward.z = 0;
-            newForward.x = 0;
-
-            _body.transform.forward = newForward.normalized;
-
-        }
-
-    }
-
-    public void SetMovementRotation()
+    /// <summary>
+    /// Body will rotate towards assigned rigidbody's velocity.
+    /// </summary>
+    public void SetMovementRotation(Rigidbody rigidbody)
     {
         _rotationType = RotationType.Movement;
+
+        _rigidbody = rigidbody;
     }
 
+    /// <summary>
+    /// Body will face the target.
+    /// </summary>
+    /// <param name="target"></param>
     public void SetTargetRotation(Transform target)
     {
         _rotationType = RotationType.LookAtTarget;
 
         _target = target;
     }
-    
-    public void SetTargetForwar(Transform target)
+
+    /// <summary>
+    /// Body will copy the target's forward normalized.
+    /// </summary>
+    /// <param name="target"></param>
+    public void SetTargetForward(Transform target)
     {
         _rotationType = RotationType.TargetForward;
 
         _target = target;
     }
 
+    /// <summary>
+    /// Body will face provided forward normalized.
+    /// </summary>
+    /// <param name="forward"></param>
+    public void SetForward(Vector3 forward)
+    {
+        _rotationType = RotationType.Forward;
 
+        _forward = forward;
+    }
+
+    /// <summary>
+    /// Body will face provided position
+    /// </summary>
+    public void SetTargetPosition(Vector3 position)
+    {
+        _rotationType = RotationType.LookAtPosition;
+
+        _targetPosition = position;
+    }
+
+    public void DisableRotation()
+    {
+        _rotationType = RotationType.None;
+    }
 
     void MovementRotation()
     {
-
-        if (_body != null)
+        if (_body != null && _rigidbody != null)
         {
-            if (_rigidbody.velocity != Vector3.zero)
+            if (_rigidbody.velocity.x != 0 || _rigidbody.velocity.z != 0)
             {
                 Quaternion prevRotation = _body.rotation;
 
@@ -118,16 +154,48 @@ public class CharacterBodyRotation : MonoBehaviour
         {
             var direction = target.position - _body.position;
 
-            var newForward = Vector3.Lerp(_body.forward, direction.normalized, Time.deltaTime * _lerpFactor);
-
-            newForward.z = 0;
-            newForward.x = 0;
-
-            _body.transform.forward = newForward.normalized;
+            ForwardRotation(direction);
 
         }
 
     }
+
+    void TargetPositionRotation(Vector3 position)
+    {
+        if (_body != null)
+        {
+            var direction = position - _body.position;
+
+            ForwardRotation(direction);
+
+        }
+    }
+
+    private void TargetForwardRotation(Transform target)
+    {
+        if (_body != null && target != null)
+        {
+            ForwardRotation(target.forward);
+
+        }
+
+    }
+
+    private void ForwardRotation(Vector3 forward)
+    {
+        if (_body != null)
+        {
+            var direction = forward;
+
+            var newForward = Vector3.Lerp(_body.forward, direction.normalized, Time.deltaTime * _lerpFactor);
+
+            newForward.y = 0;
+
+            _body.transform.forward = newForward.normalized;
+
+        }
+    }
+
 }
 
 

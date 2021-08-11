@@ -115,7 +115,7 @@ public class Binocucom : InputComponent
 
         input.Character.BinocucomScroll.performed += ctx =>
         {
-            if (ctx.ReadValue<Vector2>().y > 0)
+            if (ctx.ReadValue<float>() > 0)
             {
                 SightScroll(false);
             }

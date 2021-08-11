@@ -27,9 +27,17 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                     ""interactions"": """"
                 },
                 {
-                    ""name"": ""Camera"",
+                    ""name"": ""MouseCamera"",
                     ""type"": ""Value"",
                     ""id"": ""13e37655-4b8f-4217-9aba-38fcdc869536"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""PadCamera"",
+                    ""type"": ""Value"",
+                    ""id"": ""9d6dcfdd-340a-489a-940a-f299569c58c1"",
                     ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """"
@@ -94,7 +102,15 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                     ""name"": ""BinocucomScroll"",
                     ""type"": ""Value"",
                     ""id"": ""40e75d90-1ac2-445b-9be7-76000bfc1fc0"",
-                    ""expectedControlType"": """",
+                    ""expectedControlType"": ""Axis"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""BinocucomPad"",
+                    ""type"": ""Value"",
+                    ""id"": ""c4bc2e4a-03cd-40c7-94a7-197faa32ad79"",
+                    ""expectedControlType"": ""Axis"",
                     ""processors"": """",
                     ""interactions"": """"
                 },
@@ -173,12 +189,23 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""c71a7243-a499-44aa-9540-ee03e47b1cd0"",
+                    ""path"": ""<Gamepad>/leftStick"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Movement"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""79d5fe05-5d6d-454f-afa9-09d1732218f8"",
                     ""path"": ""<Mouse>/delta"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Normal"",
-                    ""action"": ""Camera"",
+                    ""action"": ""MouseCamera"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -186,6 +213,17 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                     ""name"": """",
                     ""id"": ""6f416d8a-fd59-4369-9623-1c7c1f34d4cc"",
                     ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d8604a54-5976-4d4a-b47e-397a930822a7"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -261,6 +299,17 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""5b5d37d9-cf6a-45ac-b635-87db423b669a"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""df18c77f-678f-4554-ae33-f1aebe4c7e35"",
                     ""path"": ""<Mouse>/rightButton"",
                     ""interactions"": """",
@@ -283,6 +332,17 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""105dbf89-c0c6-4e10-9d5b-80b3ffa290b8"",
+                    ""path"": ""<Gamepad>/rightStickPress"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Binocucom"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""3a500917-85de-415c-88a7-5a775e7d8082"",
                     ""path"": ""<Mouse>/leftButton"",
                     ""interactions"": """",
@@ -294,8 +354,19 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""775d9f07-d48c-492c-b1d7-4c51a60379d4"",
+                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Attack"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""506d5e1b-bf99-4421-93aa-cd3622610872"",
-                    ""path"": ""<Mouse>/scroll"",
+                    ""path"": ""<Mouse>/scroll/y"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -322,6 +393,39 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Sprint"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4f865791-c0b6-4668-a9f3-a9edd8ff0406"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Sprint"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""65bf89a0-9a8b-4be1-a476-2d726fd81a3f"",
+                    ""path"": ""<Gamepad>/rightStick"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Normal"",
+                    ""action"": ""PadCamera"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d6bb02eb-9432-4a20-a0cf-45c55defbaec"",
+                    ""path"": ""<Gamepad>/leftStick/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BinocucomScroll"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -355,7 +459,8 @@ public class @PlatformMap : IInputActionCollection, IDisposable
         // Character
         m_Character = asset.FindActionMap("Character", throwIfNotFound: true);
         m_Character_Movement = m_Character.FindAction("Movement", throwIfNotFound: true);
-        m_Character_Camera = m_Character.FindAction("Camera", throwIfNotFound: true);
+        m_Character_MouseCamera = m_Character.FindAction("MouseCamera", throwIfNotFound: true);
+        m_Character_PadCamera = m_Character.FindAction("PadCamera", throwIfNotFound: true);
         m_Character_Jump = m_Character.FindAction("Jump", throwIfNotFound: true);
         m_Character_Music = m_Character.FindAction("Music", throwIfNotFound: true);
         m_Character_Exit = m_Character.FindAction("Exit", throwIfNotFound: true);
@@ -364,6 +469,7 @@ public class @PlatformMap : IInputActionCollection, IDisposable
         m_Character_Binocucom = m_Character.FindAction("Binocucom", throwIfNotFound: true);
         m_Character_Attack = m_Character.FindAction("Attack", throwIfNotFound: true);
         m_Character_BinocucomScroll = m_Character.FindAction("BinocucomScroll", throwIfNotFound: true);
+        m_Character_BinocucomPad = m_Character.FindAction("BinocucomPad", throwIfNotFound: true);
         m_Character_Crawl = m_Character.FindAction("Crawl", throwIfNotFound: true);
         m_Character_Sprint = m_Character.FindAction("Sprint", throwIfNotFound: true);
     }
@@ -416,7 +522,8 @@ public class @PlatformMap : IInputActionCollection, IDisposable
     private readonly InputActionMap m_Character;
     private ICharacterActions m_CharacterActionsCallbackInterface;
     private readonly InputAction m_Character_Movement;
-    private readonly InputAction m_Character_Camera;
+    private readonly InputAction m_Character_MouseCamera;
+    private readonly InputAction m_Character_PadCamera;
     private readonly InputAction m_Character_Jump;
     private readonly InputAction m_Character_Music;
     private readonly InputAction m_Character_Exit;
@@ -425,6 +532,7 @@ public class @PlatformMap : IInputActionCollection, IDisposable
     private readonly InputAction m_Character_Binocucom;
     private readonly InputAction m_Character_Attack;
     private readonly InputAction m_Character_BinocucomScroll;
+    private readonly InputAction m_Character_BinocucomPad;
     private readonly InputAction m_Character_Crawl;
     private readonly InputAction m_Character_Sprint;
     public struct CharacterActions
@@ -432,7 +540,8 @@ public class @PlatformMap : IInputActionCollection, IDisposable
         private @PlatformMap m_Wrapper;
         public CharacterActions(@PlatformMap wrapper) { m_Wrapper = wrapper; }
         public InputAction @Movement => m_Wrapper.m_Character_Movement;
-        public InputAction @Camera => m_Wrapper.m_Character_Camera;
+        public InputAction @MouseCamera => m_Wrapper.m_Character_MouseCamera;
+        public InputAction @PadCamera => m_Wrapper.m_Character_PadCamera;
         public InputAction @Jump => m_Wrapper.m_Character_Jump;
         public InputAction @Music => m_Wrapper.m_Character_Music;
         public InputAction @Exit => m_Wrapper.m_Character_Exit;
@@ -441,6 +550,7 @@ public class @PlatformMap : IInputActionCollection, IDisposable
         public InputAction @Binocucom => m_Wrapper.m_Character_Binocucom;
         public InputAction @Attack => m_Wrapper.m_Character_Attack;
         public InputAction @BinocucomScroll => m_Wrapper.m_Character_BinocucomScroll;
+        public InputAction @BinocucomPad => m_Wrapper.m_Character_BinocucomPad;
         public InputAction @Crawl => m_Wrapper.m_Character_Crawl;
         public InputAction @Sprint => m_Wrapper.m_Character_Sprint;
         public InputActionMap Get() { return m_Wrapper.m_Character; }
@@ -455,9 +565,12 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                 @Movement.started -= m_Wrapper.m_CharacterActionsCallbackInterface.OnMovement;
                 @Movement.performed -= m_Wrapper.m_CharacterActionsCallbackInterface.OnMovement;
                 @Movement.canceled -= m_Wrapper.m_CharacterActionsCallbackInterface.OnMovement;
-                @Camera.started -= m_Wrapper.m_CharacterActionsCallbackInterface.OnCamera;
-                @Camera.performed -= m_Wrapper.m_CharacterActionsCallbackInterface.OnCamera;
-                @Camera.canceled -= m_Wrapper.m_CharacterActionsCallbackInterface.OnCamera;
+                @MouseCamera.started -= m_Wrapper.m_CharacterActionsCallbackInterface.OnMouseCamera;
+                @MouseCamera.performed -= m_Wrapper.m_CharacterActionsCallbackInterface.OnMouseCamera;
+                @MouseCamera.canceled -= m_Wrapper.m_CharacterActionsCallbackInterface.OnMouseCamera;
+                @PadCamera.started -= m_Wrapper.m_CharacterActionsCallbackInterface.OnPadCamera;
+                @PadCamera.performed -= m_Wrapper.m_CharacterActionsCallbackInterface.OnPadCamera;
+                @PadCamera.canceled -= m_Wrapper.m_CharacterActionsCallbackInterface.OnPadCamera;
                 @Jump.started -= m_Wrapper.m_CharacterActionsCallbackInterface.OnJump;
                 @Jump.performed -= m_Wrapper.m_CharacterActionsCallbackInterface.OnJump;
                 @Jump.canceled -= m_Wrapper.m_CharacterActionsCallbackInterface.OnJump;
@@ -482,6 +595,9 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                 @BinocucomScroll.started -= m_Wrapper.m_CharacterActionsCallbackInterface.OnBinocucomScroll;
                 @BinocucomScroll.performed -= m_Wrapper.m_CharacterActionsCallbackInterface.OnBinocucomScroll;
                 @BinocucomScroll.canceled -= m_Wrapper.m_CharacterActionsCallbackInterface.OnBinocucomScroll;
+                @BinocucomPad.started -= m_Wrapper.m_CharacterActionsCallbackInterface.OnBinocucomPad;
+                @BinocucomPad.performed -= m_Wrapper.m_CharacterActionsCallbackInterface.OnBinocucomPad;
+                @BinocucomPad.canceled -= m_Wrapper.m_CharacterActionsCallbackInterface.OnBinocucomPad;
                 @Crawl.started -= m_Wrapper.m_CharacterActionsCallbackInterface.OnCrawl;
                 @Crawl.performed -= m_Wrapper.m_CharacterActionsCallbackInterface.OnCrawl;
                 @Crawl.canceled -= m_Wrapper.m_CharacterActionsCallbackInterface.OnCrawl;
@@ -495,9 +611,12 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                 @Movement.started += instance.OnMovement;
                 @Movement.performed += instance.OnMovement;
                 @Movement.canceled += instance.OnMovement;
-                @Camera.started += instance.OnCamera;
-                @Camera.performed += instance.OnCamera;
-                @Camera.canceled += instance.OnCamera;
+                @MouseCamera.started += instance.OnMouseCamera;
+                @MouseCamera.performed += instance.OnMouseCamera;
+                @MouseCamera.canceled += instance.OnMouseCamera;
+                @PadCamera.started += instance.OnPadCamera;
+                @PadCamera.performed += instance.OnPadCamera;
+                @PadCamera.canceled += instance.OnPadCamera;
                 @Jump.started += instance.OnJump;
                 @Jump.performed += instance.OnJump;
                 @Jump.canceled += instance.OnJump;
@@ -522,6 +641,9 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                 @BinocucomScroll.started += instance.OnBinocucomScroll;
                 @BinocucomScroll.performed += instance.OnBinocucomScroll;
                 @BinocucomScroll.canceled += instance.OnBinocucomScroll;
+                @BinocucomPad.started += instance.OnBinocucomPad;
+                @BinocucomPad.performed += instance.OnBinocucomPad;
+                @BinocucomPad.canceled += instance.OnBinocucomPad;
                 @Crawl.started += instance.OnCrawl;
                 @Crawl.performed += instance.OnCrawl;
                 @Crawl.canceled += instance.OnCrawl;
@@ -544,7 +666,8 @@ public class @PlatformMap : IInputActionCollection, IDisposable
     public interface ICharacterActions
     {
         void OnMovement(InputAction.CallbackContext context);
-        void OnCamera(InputAction.CallbackContext context);
+        void OnMouseCamera(InputAction.CallbackContext context);
+        void OnPadCamera(InputAction.CallbackContext context);
         void OnJump(InputAction.CallbackContext context);
         void OnMusic(InputAction.CallbackContext context);
         void OnExit(InputAction.CallbackContext context);
@@ -553,6 +676,7 @@ public class @PlatformMap : IInputActionCollection, IDisposable
         void OnBinocucom(InputAction.CallbackContext context);
         void OnAttack(InputAction.CallbackContext context);
         void OnBinocucomScroll(InputAction.CallbackContext context);
+        void OnBinocucomPad(InputAction.CallbackContext context);
         void OnCrawl(InputAction.CallbackContext context);
         void OnSprint(InputAction.CallbackContext context);
     }

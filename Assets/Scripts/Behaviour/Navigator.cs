@@ -13,16 +13,24 @@ public class Navigator : MonoBehaviour
     [SerializeField] [Range(0.01f, 1)] float _patrolDistance = 0.1f;
     [SerializeField] [Range(0.01f, 5)] float _pursueDistance = 0.1f;
     [SerializeField] [Range(0.01f, 5)] float _checkingPlaceDistance = 0.1f;
+    [SerializeField] [Range(0.01f, 5)] float _jumpLineDistance = 0.1f;
 
     public Action patrolPointReachedAction;
     public Action pursueReachedAction;
     public Action targetPositionReachedAction;
 
+    public Vector3 velocity
+    {
+        get
+        {
+            return _navMeshAgent.velocity;
+        }
+    }
+
     int _currentPatrolPoint;
     bool _apply;
 
     Transform _target;
-    EnviromentInfo _targetEnviromentInfo;
 
     //Used for an specific position with no changes
     Vector3 _targetPosition;
@@ -33,7 +41,10 @@ public class Navigator : MonoBehaviour
     {
         Pursue,
         Patrol,
-        GoingToPosition
+        GoingToPosition,
+        
+        GoingToLinePoint,
+        JumpToLinePoint,
     }
 
     // Start is called before the first frame update
@@ -86,7 +97,6 @@ public class Navigator : MonoBehaviour
         _navMeshAgent.speed = speed;
 
         _target = target;
-        _targetEnviromentInfo = _target.GetComponent<EnviromentInfo>();
 
         _currentState = State.Pursue;
 
@@ -151,6 +161,7 @@ public class Navigator : MonoBehaviour
 
                 //PURSUE STATE
                 case State.Pursue:
+
                     if (Vector3.Distance(_navMeshAgent.transform.position, _target.position) < _pursueDistance)
                     {
                         if (patrolPointReachedAction != null)
@@ -170,6 +181,21 @@ public class Navigator : MonoBehaviour
                         }
                     }
                     break;
+
+                case State.GoingToLinePoint:
+                    _navMeshAgent.SetDestination(_targetPosition);
+
+                    if (Vector3.Distance(_navMeshAgent.transform.position, _targetPosition) < _jumpLineDistance)
+                    {
+                        _currentState = State.JumpToLinePoint;
+                    }
+                    break;
+
+                case State.JumpToLinePoint:
+                    
+                    break;
+
+
 
                 default:
                     break;
