@@ -69,6 +69,8 @@ public class CharacterMovement : InputComponent
 
     public Semaphore semaphore;
 
+    public bool isMoving { get; private set; }
+
     public bool isCrawling
     {
         get
@@ -160,10 +162,13 @@ public class CharacterMovement : InputComponent
         {
             if (_moveInput != Vector2.zero)
             {
+                isMoving = true;
+
                 _characterBodyRotation.SetMovementRotation(_rigidbody);
             }
             else
             {
+                isMoving = false;
                 _characterBodyRotation.DisableRotation();
             }
 
@@ -313,7 +318,10 @@ public class CharacterMovement : InputComponent
             }
 
         }
-
+        else
+        {
+            isMoving = false;
+        }
 
         //Reset Input Variables
         _inputJump = false;
@@ -435,7 +443,7 @@ public class CharacterMovement : InputComponent
                 targetVelocity = _playerCamera.GetForward() * _moveInput.y + _playerCamera.GetRight() * _moveInput.x;
 
                 targetVelocity.y = 0;
-                targetVelocity.Normalize();
+                //targetVelocity.Normalize();
                 targetVelocity *= speed;
 
                 //_rigidbody.AddForce(totalVelocity, ForceMode.VelocityChange);
@@ -532,11 +540,7 @@ public class CharacterMovement : InputComponent
         #region Axis Movement
         input.Character.Movement.performed += ctx =>
         {
-            Vector2 v = ctx.ReadValue<Vector2>();
-
-            //Set Latest Input Direction. Movement is applied in FixedUpdate
-            _moveInput = v;
-
+            _moveInput = ctx.ReadValue<Vector2>();
         };
 
 

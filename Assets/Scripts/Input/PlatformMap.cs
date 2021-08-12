@@ -20,7 +20,7 @@ public class @PlatformMap : IInputActionCollection, IDisposable
             ""actions"": [
                 {
                     ""name"": ""Movement"",
-                    ""type"": ""PassThrough"",
+                    ""type"": ""Value"",
                     ""id"": ""9b560bd6-e48a-4c02-b9ec-cc25f8ed5c59"",
                     ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
