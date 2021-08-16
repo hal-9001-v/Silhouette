@@ -22,6 +22,7 @@ public class HeavyMob : MonoBehaviour
     [SerializeField] [Range(1f, 10)] float _meleeRange;
     [SerializeField] [Range(1f, 10)] float _meleeDamage;
     [SerializeField] [Range(1f, 10)] float _meleeDuration;
+    [SerializeField] [Range(1f, 10)] float _idleMeleeDuration;
     [SerializeField] [Range(1f, 10)] float _meleePush;
     [SerializeField] [Range(1f, 10)] float _timeToRecover;
     [SerializeField] [Range(1f, 10)] float _timeCheckingPlace;
@@ -37,11 +38,11 @@ public class HeavyMob : MonoBehaviour
 
     Transform _target;
 
-    float _timeOutOfSight;
-
     Vector3 _checkPlace;
 
     Coroutine _currentTimeCoroutine;
+
+    Timer _timer;
 
     public bool avaliableForPatrol { get; private set; }
 
@@ -58,7 +59,10 @@ public class HeavyMob : MonoBehaviour
         Patrol,
         Idle,
         Pursue,
+
+        Attack,
         AttackIdle,
+
         Stunned,
         CheckPlace,
         CheckPlaceIdle,
@@ -85,7 +89,7 @@ public class HeavyMob : MonoBehaviour
 
         _melee = GetComponent<Melee>();
         _melee.hitAction += TargetHit;
-        _melee.endOfAttackAction += EndAttackIdle;
+        _melee.endOfAttackAction += EndAttack;
 
         _health = GetComponent<Health>();
         _health.DeadAction += Die;
@@ -99,6 +103,8 @@ public class HeavyMob : MonoBehaviour
 
         _characterBodyRotation = GetComponent<CharacterBodyRotation>();
 
+        _timer = new Timer();
+
         avaliableForPatrol = true;
 
         //Hide();
@@ -106,6 +112,12 @@ public class HeavyMob : MonoBehaviour
 
     private void Start()
     {
+        var register = FindObjectOfType<MobRegister>();
+
+        if (register != null) {
+            register.mobs.Add(this);
+        }
+
         _navigator.Patrol(_patrolSpeed);
     }
 
@@ -134,21 +146,25 @@ public class HeavyMob : MonoBehaviour
             case MobState.Pursue:
                 if (CheckForTarget())
                 {
-                    _timeOutOfSight = 0;
+                    _timer.ResetFixedTimer();
                 }
                 else
                 {
-                    _timeOutOfSight += Time.fixedDeltaTime;
-
-                    if (_timeOutOfSight >= _maxTimeOutOfSight)
+                    if (_timer.UpdateFixedTimer(_maxTimeOutOfSight))
                     {
+                        var enviroment = _target.GetComponent<CharacterEnviroment>();
+                        if (enviroment != null)
+                        {
+                            enviroment.discoverCount--;
+                        }
+
                         ChangeState(MobState.Patrol);
                     }
                 }
 
                 if (Vector3.Distance(transform.position, _target.position) <= _meleeRange)
                 {
-                    _melee.Attack(_meleeDamage, _meleePush, _meleeDuration);
+                    ChangeState(MobState.Attack);
                 }
 
                 _characterBodyRotation.SetForward(_navigator.velocity);
@@ -172,10 +188,25 @@ public class HeavyMob : MonoBehaviour
                 break;
 
 
+            case MobState.Attack:
+                _characterBodyRotation.SetTargetRotation(_target);
+                break;
 
             case MobState.AttackIdle:
-
                 _characterBodyRotation.SetTargetRotation(_target);
+
+                if (_timer.UpdateFixedTimer(_idleMeleeDuration))
+                {
+                    if (Vector3.Distance(_target.position, transform.position) < _meleeRange)
+                    {
+                        ChangeState(MobState.Attack);
+                    }
+                    else
+                    {
+                        ChangeState(MobState.Pursue);
+                    }
+                }
+
                 break;
 
             case MobState.Stunned:
@@ -215,11 +246,11 @@ public class HeavyMob : MonoBehaviour
         ChangeState(MobState.AttackIdle);
     }
 
-    void EndAttackIdle()
+    void EndAttack()
     {
-        if (_currentState == MobState.AttackIdle)
+        if (_currentState == MobState.Attack)
         {
-            ChangeState(MobState.Pursue);
+            ChangeState(MobState.AttackIdle);
         }
     }
 
@@ -261,13 +292,29 @@ public class HeavyMob : MonoBehaviour
 
             case MobState.Pursue:
                 _navigator.Pursue(_pursueSpeed, _target);
-                _timeOutOfSight = 0;
+                _timer.ResetFixedTimer();
+
+                var enviroment = _target.GetComponent<CharacterEnviroment>();
+                if (enviroment != null)
+                {
+                    enviroment.discoverCount++;
+                }
+
+                _light.color = _fightColor;
+                break;
+
+
+            case MobState.Attack:
+                _navigator.Stop();
+                _melee.Attack(0);
+
 
                 _light.color = _fightColor;
                 break;
 
             case MobState.AttackIdle:
                 _navigator.Stop();
+                _timer.ResetFixedTimer();
 
                 _light.color = _fightColor;
                 break;
@@ -401,8 +448,5 @@ public class HeavyMob : MonoBehaviour
         ChangeState(MobState.CheckPlace);
 
     }
-
-
-
 
 }

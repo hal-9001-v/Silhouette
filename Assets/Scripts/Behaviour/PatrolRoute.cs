@@ -4,14 +4,29 @@ using UnityEngine;
 
 public class PatrolRoute : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] HeavyMob _mob;
     public Transform[] patrolPoints;
 
     private void Start()
     {
-        GetMob();
+        //RequestMob();
+
+        CreateMob();
     }
 
-    public void GetMob()
+    public void CreateMob() {
+
+        var mob = Instantiate(_mob.gameObject).GetComponent<HeavyMob>();
+        mob.transform.position = patrolPoints[0].position;
+        mob.GetComponent<Navigator>().WarpNavMesh();
+        
+        mob.SetPatrolRoute(this);
+        
+        
+    }
+
+    public void RequestMob()
     {
         foreach (HeavyMob mob in FindObjectsOfType<HeavyMob>())
         {
@@ -22,6 +37,25 @@ public class PatrolRoute : MonoBehaviour
                 return;
             }
         }
+    }
+
+    [ContextMenu("Update Patrol Points")]
+    private void UpdatePatrolPoints()
+    {
+        List<Transform> points = new List<Transform>();
+
+        int counter = 1;
+        foreach (Transform point in GetComponentsInChildren<Transform>()) {
+            if (point != transform) {
+                points.Add(point);
+                
+                point.name = "Patrol Point " + counter.ToString();
+                counter++;
+            }
+        }
+
+
+        patrolPoints = points.ToArray();
     }
 
     private void OnDrawGizmos()

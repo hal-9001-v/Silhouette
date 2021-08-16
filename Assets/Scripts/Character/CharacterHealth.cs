@@ -4,26 +4,31 @@ using UnityEngine;
 using TMPro;
 
 
-[RequireComponent(typeof(Health))]
+[RequireComponent(typeof(Health), typeof(WaterDetector))]
 public class CharacterHealth : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] Rigidbody _rigidbody;
     [SerializeField] CharacterMovement _characterMovement;
+    [SerializeField] CharacterAligner _characterAligner;
     [SerializeField] TextMeshProUGUI _textMesh;
 
     [Header("Settings")]
     [SerializeField] [Range(0.1f, 2)] float _knockUpDuration;
+    [SerializeField] [Range(0.1f, 20)] float _waterRecoverSpeed;
 
     Health _health;
-
+    WaterDetector _waterDetector;
 
     private void Start()
     {
         _health = GetComponent<Health>();
+        _waterDetector = GetComponent<WaterDetector>();
 
         _health.HurtAction += HurtPlayer;
         _health.DeadAction += KillPlayer;
+
+        _waterDetector.waterContactAction += ContactWithWater;
 
     }
 
@@ -32,7 +37,7 @@ public class CharacterHealth : MonoBehaviour
     {
         if (_textMesh != null)
         {
-            _textMesh.text =_health.CurrentHealth.ToString();
+            _textMesh.text = _health.CurrentHealth.ToString();
         }
 
         StartCoroutine(KnockUpCharacter(_knockUpDuration));
@@ -43,6 +48,17 @@ public class CharacterHealth : MonoBehaviour
         _characterMovement.Push(pushDirection.normalized * push);
 
 
+    }
+
+    void ContactWithWater(float damage)
+    {
+
+        _characterMovement.semaphore.Lock();
+
+        _characterAligner.AlignCharacter(_characterMovement.recoverGround, _waterRecoverSpeed, () =>
+        {
+            _characterMovement.semaphore.Unlock();
+        });
     }
 
     IEnumerator KnockUpCharacter(float duration)

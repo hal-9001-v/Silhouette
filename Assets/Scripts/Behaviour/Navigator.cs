@@ -78,6 +78,10 @@ public class Navigator : MonoBehaviour
         transform.position = route.patrolPoints[_currentPatrolPoint].position;
     }
 
+    public void WarpNavMesh() {
+        _navMeshAgent.Warp(transform.position);
+    }
+
     public void Patrol(float speed)
     {
         if (_patrolRoute != null)
@@ -127,6 +131,14 @@ public class Navigator : MonoBehaviour
         _apply = true;
     }
 
+
+    float HorizontalDistance(Vector3 a, Vector3 b)
+    {
+        return Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
+    }
+
+
+
     private void FixedUpdate()
     {
         if (_apply)
@@ -147,7 +159,7 @@ public class Navigator : MonoBehaviour
                 //PATROL STATE
                 case State.Patrol:
                     if (_patrolRoute == null) return;
-                    if (Vector3.Distance(_navMeshAgent.transform.position, _target.position) < _patrolDistance)
+                    if (HorizontalDistance(_navMeshAgent.transform.position, _target.position) < _patrolDistance)
                     {
                         SetNextPatrolPoint();
                         _target = _patrolRoute.patrolPoints[_currentPatrolPoint];
@@ -162,7 +174,7 @@ public class Navigator : MonoBehaviour
                 //PURSUE STATE
                 case State.Pursue:
 
-                    if (Vector3.Distance(_navMeshAgent.transform.position, _target.position) < _pursueDistance)
+                    if (HorizontalDistance(_navMeshAgent.transform.position, _target.position) < _pursueDistance)
                     {
                         if (patrolPointReachedAction != null)
                             pursueReachedAction.Invoke();
@@ -173,7 +185,7 @@ public class Navigator : MonoBehaviour
 
                     _navMeshAgent.SetDestination(_targetPosition);
 
-                    if (Vector3.Distance(_navMeshAgent.transform.position, _targetPosition) < _checkingPlaceDistance)
+                    if (HorizontalDistance(_navMeshAgent.transform.position, _targetPosition) < _checkingPlaceDistance)
                     {
                         if (targetPositionReachedAction != null)
                         {
@@ -185,7 +197,7 @@ public class Navigator : MonoBehaviour
                 case State.GoingToLinePoint:
                     _navMeshAgent.SetDestination(_targetPosition);
 
-                    if (Vector3.Distance(_navMeshAgent.transform.position, _targetPosition) < _jumpLineDistance)
+                    if (HorizontalDistance(_navMeshAgent.transform.position, _targetPosition) < _jumpLineDistance)
                     {
                         _currentState = State.JumpToLinePoint;
                     }

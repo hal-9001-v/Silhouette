@@ -12,8 +12,8 @@ public class Mover : MonoBehaviour
     [Space(5)]
     [Header("Settings")]
 
-    [Range(1, 10)]
-    [SerializeField] float _inAirSpeed = 3;
+    //[Range(1, 10)]
+    //[SerializeField] float _inAirSpeed = 3;
 
     [Range(0.01f, 1)]
     [SerializeField] float _ledgeGrabRange;

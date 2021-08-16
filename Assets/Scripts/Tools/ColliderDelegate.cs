@@ -5,27 +5,44 @@ using UnityEngine;
 
 public class ColliderDelegate : MonoBehaviour
 {
-    //Collision is other, and Vector3 is the position of this collider at such collision
-    public Action<Collision, Vector3> CollisionEnterAction;
-    public Action<Collision, Vector3> CollisionStayAction;
-    public Action<Collision, Vector3> CollisionExitAction;
-    
-    public Action<Collider, Vector3> TriggerEnterAction;
-    public Action<Collider, Vector3> TriggerStayAction;
-    public Action<Collider, Vector3> TriggerExitAction;
+    /// <summary>
+    /// Transform is this, Collision is other, and Vector3 is the position of this collider at such collision
+    /// </summary>
+    public Action<Transform, Collision, Vector3> CollisionEnterAction;
+    /// <summary>
+    /// Transform is this, Collision is other, and Vector3 is the position of this collider at such collision
+    /// </summary>
+    public Action<Transform, Collision, Vector3> CollisionStayAction;
+    /// <summary>
+    /// Transform is this, Collision is other, and Vector3 is the position of this collider at such collision
+    /// </summary>
+    public Action<Transform, Collision, Vector3> CollisionExitAction;
+    /// <summary>
+    /// Transform is this, Collision is other, and Vector3 is the position of this collider at such collision
+    /// </summary>
+    public Action<Transform, Collider, Vector3> TriggerEnterAction;
+    /// <summary>
+    /// Transform is this, Collision is other, and Vector3 is the position of this collider at such collision
+    /// </summary>
+    public Action<Transform, Collider, Vector3> TriggerStayAction;
+    /// <summary>
+    /// Transform is this, Collision is other, and Vector3 is the position of this collider at such collision
+    /// </summary>
+    public Action<Transform, Collider, Vector3> TriggerExitAction;
 
 
     private void OnCollisionEnter(Collision collision)
     {
         if (CollisionEnterAction != null)
         {
-            CollisionEnterAction.Invoke(collision,transform.position);
+            CollisionEnterAction.Invoke(transform, collision, transform.position);
         }
     }
     private void OnCollisionStay(Collision collision)
     {
-        if (CollisionStayAction != null) {
-            CollisionStayAction.Invoke(collision, transform.position);
+        if (CollisionStayAction != null)
+        {
+            CollisionStayAction.Invoke(transform, collision, transform.position);
         }
     }
 
@@ -33,7 +50,7 @@ public class ColliderDelegate : MonoBehaviour
     {
         if (CollisionExitAction != null)
         {
-            CollisionExitAction.Invoke(collision, transform.position);
+            CollisionExitAction.Invoke(transform, collision, transform.position);
         }
     }
 
@@ -41,7 +58,7 @@ public class ColliderDelegate : MonoBehaviour
     {
         if (TriggerEnterAction != null)
         {
-            TriggerEnterAction.Invoke(other, transform.position);
+            TriggerEnterAction.Invoke(transform, other, transform.position);
         }
     }
 
@@ -49,7 +66,7 @@ public class ColliderDelegate : MonoBehaviour
     {
         if (TriggerStayAction != null)
         {
-            TriggerStayAction.Invoke(other, transform.position);
+            TriggerStayAction.Invoke(transform, other, transform.position);
         }
     }
 
@@ -57,7 +74,7 @@ public class ColliderDelegate : MonoBehaviour
     {
         if (TriggerExitAction != null)
         {
-            TriggerExitAction.Invoke(other, transform.position);
+            TriggerExitAction.Invoke(transform, other, transform.position);
         }
     }
 

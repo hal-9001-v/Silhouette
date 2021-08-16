@@ -14,7 +14,7 @@ public class CharacterMovement : InputComponent
     [SerializeField] Collider _crawlCollider;
     [Space(5)]
     [SerializeField] CharacterAnimationCommand _animationCommand;
-    [SerializeField] CharacterBodyRotation _characterBodyRotation;
+    [SerializeReference] CharacterEnviroment _characterEnviroment;
     [SerializeField] PlayerCamera _playerCamera;
     [SerializeField] Noiser _noiser;
 
@@ -34,7 +34,6 @@ public class CharacterMovement : InputComponent
     [SerializeField] float _sprintNoiseRange;
 
     [SerializeField] [Range(1, 10)] float _creepingSpeed = 3;
-    [SerializeField] [Range(1, 10)] float _crawlSpeed = 3;
 
     [Range(1, 10)]
     [SerializeField] float _inAirSpeed = 3;
@@ -70,20 +69,13 @@ public class CharacterMovement : InputComponent
     public Semaphore semaphore;
 
     public bool isMoving { get; private set; }
+    public bool isSprinting { get; private set; }
 
-    public bool isCrawling
-    {
-        get
-        {
-            return _currentState == State.CrawlIdle || _currentState == State.CrawlMove;
-        }
-    }
+    public Vector3 recoverGround { get; private set; }
 
     //Logic
     Vector2 _moveInput;
     bool _inputJump;
-    bool _inputCreep;
-    bool _inputCrawl;
     bool _inputSprint;
 
     //Everytime ChangeState(nextState), _endOfStateAction.invoke(nextState)
@@ -99,9 +91,6 @@ public class CharacterMovement : InputComponent
 
         CreepIdle,
         CreepMove,
-
-        CrawlIdle,
-        CrawlMove,
 
         Launched,
 
@@ -164,13 +153,14 @@ public class CharacterMovement : InputComponent
             {
                 isMoving = true;
 
-                _characterBodyRotation.SetMovementRotation(_rigidbody);
+                //_characterBodyRotation.SetMovementRotation(_rigidbody);
             }
             else
             {
                 isMoving = false;
-                _characterBodyRotation.DisableRotation();
+                //_characterBodyRotation.DisableRotation();
             }
+
 
             //Look at next switch for state transition.
             switch (_currentState)
@@ -211,6 +201,9 @@ public class CharacterMovement : InputComponent
                 case State.CreepIdle:
 
                     CheckTransitions();
+                    
+                    if (_inputJump && isGrounded)
+                        ChangeState(State.JumpStart);
 
                     _animationCommand.CreepIdle();
                     break;
@@ -225,26 +218,6 @@ public class CharacterMovement : InputComponent
                         ChangeState(State.JumpStart);
 
                     _animationCommand.Creep();
-                    break;
-
-                case State.CrawlIdle:
-                    CheckTransitions();
-
-                    if (_inputJump && isGrounded)
-                        ChangeState(State.JumpStart);
-
-                    _animationCommand.CrawlIdle();
-                    break;
-
-                case State.CrawlMove:
-                    MovePlayer(_crawlSpeed, ForceMode.VelocityChange);
-
-                    CheckTransitions();
-
-                    if (_inputJump && isGrounded)
-                        ChangeState(State.JumpStart);
-
-                    _animationCommand.Crawl();
                     break;
 
 
@@ -317,6 +290,10 @@ public class CharacterMovement : InputComponent
 
             }
 
+            if (isGrounded)
+            {
+                recoverGround = transform.position;
+            }
         }
         else
         {
@@ -325,21 +302,21 @@ public class CharacterMovement : InputComponent
 
         //Reset Input Variables
         _inputJump = false;
+
+
     }
 
     void CheckTransitions()
     {
         if (_moveInput == Vector2.zero)
         {
-            if (_inputCreep) ChangeState(State.CreepIdle);
-            else if (_inputCrawl) ChangeState(State.CrawlIdle);
+            if (_characterEnviroment.isEnemyClose) ChangeState(State.CreepIdle);
             else ChangeState(State.NormalIdle);
         }
         else
         {
             if (_inputSprint) ChangeState(State.SprintMove);
-            else if (_inputCreep) ChangeState(State.CreepMove);
-            else if (_inputCrawl) ChangeState(State.CrawlMove);
+            else if (_characterEnviroment.isEnemyClose) ChangeState(State.CreepMove);
             else ChangeState(State.RunMove);
         }
     }
@@ -364,20 +341,19 @@ public class CharacterMovement : InputComponent
             case State.RunMove:
                 break;
             case State.SprintMove:
+                isSprinting = true;
+
+                _endOfStateAction += (nextState) =>
+                {
+                    isSprinting = false;
+                };
+
                 break;
 
             case State.CreepIdle:
                 break;
 
             case State.CreepMove:
-                break;
-
-            case State.CrawlIdle:
-                SetCrawlState();
-                break;
-
-            case State.CrawlMove:
-                SetCrawlState();
                 break;
 
             case State.Launched:
@@ -407,22 +383,6 @@ public class CharacterMovement : InputComponent
         }
 
         _currentState = nextState;
-    }
-
-    void SetCrawlState()
-    {
-        _crawlCollider.enabled = true;
-        _standCollider.enabled = false;
-
-        _endOfStateAction += (newState) =>
-        {
-            if (newState != State.CrawlMove && newState != State.CrawlIdle)
-            {
-                _crawlCollider.enabled = false;
-                _standCollider.enabled = true;
-            }
-
-        };
     }
 
     public void MovePlayer(float speed, ForceMode mode)
@@ -554,28 +514,6 @@ public class CharacterMovement : InputComponent
         input.Character.Jump.performed += ctx =>
         {
             _inputJump = true;
-        };
-
-        input.Character.Creep.performed += ctx =>
-        {
-            _inputCreep = true;
-        };
-
-        input.Character.Creep.canceled += ctx =>
-        {
-            _inputCreep = false;
-        };
-
-        input.Character.Crawl.performed += ctx =>
-        {
-            _inputCrawl = true;
-
-        };
-
-        input.Character.Crawl.canceled += ctx =>
-        {
-            _inputCrawl = false;
-
         };
 
         input.Character.Sprint.performed += ctx =>

@@ -40,7 +40,7 @@ public class WallZone : MonoBehaviour
         {
             ColliderDelegate colliderDelegate = _rightLimit.gameObject.AddComponent<ColliderDelegate>();
 
-            colliderDelegate.TriggerEnterAction += (coll, pos) =>
+            colliderDelegate.TriggerEnterAction += (source, coll, pos) =>
             {
                 var other = coll.GetComponent<CharacterWallSneak>();
 
@@ -48,7 +48,7 @@ public class WallZone : MonoBehaviour
                     _player.atRightLimit = true;
             };
 
-            colliderDelegate.TriggerExitAction += (coll, pos) =>
+            colliderDelegate.TriggerExitAction += (source, coll, pos) =>
             {
                 var other = coll.GetComponent<CharacterWallSneak>();
 
@@ -62,7 +62,7 @@ public class WallZone : MonoBehaviour
         {
             ColliderDelegate colliderDelegate = _leftLimit.gameObject.AddComponent<ColliderDelegate>();
 
-            colliderDelegate.TriggerEnterAction += (coll, pos) =>
+            colliderDelegate.TriggerEnterAction += (source, coll, pos) =>
             {
                 var other = coll.GetComponent<CharacterWallSneak>();
 
@@ -70,7 +70,7 @@ public class WallZone : MonoBehaviour
                     _player.atLeftLimit = true;
             };
 
-            colliderDelegate.TriggerExitAction += (coll, pos) =>
+            colliderDelegate.TriggerExitAction += (source, coll, pos) =>
             {
                 var other = coll.GetComponent<CharacterWallSneak>();
 

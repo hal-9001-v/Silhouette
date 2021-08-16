@@ -35,7 +35,7 @@ public class Vent : MonoBehaviour
 
 
 
-    void ExitCharacter(Collider coll, Vector3 pos)
+    void ExitCharacter(Transform source, Collider coll, Vector3 pos)
     {
         var character = coll.GetComponent<CharacterVent>();
 

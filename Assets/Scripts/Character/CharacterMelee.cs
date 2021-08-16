@@ -29,7 +29,7 @@ public class CharacterMelee : InputComponent
         input.Character.Attack.performed += ctx =>
         {
             if (semaphore.isOpen)
-                _melee.Attack(_damage, _push, _hitDuration);
+                _melee.Attack(0);
         };
     }
 }

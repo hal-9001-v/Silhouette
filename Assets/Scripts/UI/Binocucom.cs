@@ -41,7 +41,7 @@ public class Binocucom : InputComponent
 
         if (_canvasGroup != null && _playerCamera != null)
         {
-            if (_characterMovement.isCrawling || _characterVent.isOnVent) _camera.transform.position = _crawlCameraPosition.position;
+            if (_characterVent.isOnVent) _camera.transform.position = _crawlCameraPosition.position;
             else _camera.transform.position = _standCameraPosition.position;
 
             _camera.m_Lens.FieldOfView = _maxFOV;
