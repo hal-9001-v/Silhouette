@@ -25,6 +25,13 @@ public class Listener : MonoBehaviour
     /// </summary>
     public Action<Vector3, Noiser> hearedNoiseAction;
 
+    private void Start()
+    {
+        var mobRegister = FindObjectOfType<MobRegister>();
+
+        if (mobRegister != null) mobRegister.listeners.Add(this);
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -47,8 +54,8 @@ public class Listener : MonoBehaviour
         Vector3 closestNoisePosition;
         if (noiseRange > 0)
         {
-            var direction = position - transform.position;
-            closestNoisePosition = direction * noiseRange;
+            var direction = transform.position - position ;
+            closestNoisePosition =  position + direction.normalized * noiseRange;
 
         }
         else

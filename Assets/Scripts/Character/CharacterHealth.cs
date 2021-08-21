@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Health), typeof(WaterDetector))]
 public class CharacterHealth : MonoBehaviour
@@ -16,9 +16,14 @@ public class CharacterHealth : MonoBehaviour
     [Header("Settings")]
     [SerializeField] [Range(0.1f, 2)] float _knockUpDuration;
     [SerializeField] [Range(0.1f, 20)] float _waterRecoverSpeed;
+    [SerializeField] [Range(0f, 1)] float _hurtRumble;
+    [SerializeField] [Range(0f, 5)] float _hurtRumbleDuration;
+    [SerializeField] [Range(0f, 1)] float _dieRumble;
+    [SerializeField] [Range(0f, 5)] float _dieRumbleDuration;
 
     Health _health;
     WaterDetector _waterDetector;
+    Rumbler _rumbler;
 
     private void Start()
     {
@@ -30,6 +35,8 @@ public class CharacterHealth : MonoBehaviour
 
         _waterDetector.waterContactAction += ContactWithWater;
 
+        _rumbler = FindObjectOfType<Rumbler>();
+        
     }
 
 
@@ -47,15 +54,15 @@ public class CharacterHealth : MonoBehaviour
 
         _characterMovement.Push(pushDirection.normalized * push);
 
-
+        _rumbler.Rumble(_hurtRumble, _hurtRumble, _hurtRumbleDuration);
     }
 
-    void ContactWithWater(float damage)
+    void ContactWithWater(float damage, WaterBody waterBody)
     {
 
         _characterMovement.semaphore.Lock();
 
-        _characterAligner.AlignCharacter(_characterMovement.recoverGround, _waterRecoverSpeed, () =>
+        _characterAligner.AlignCharacter(waterBody.GetClosestPosition(transform.position), _waterRecoverSpeed, () =>
         {
             _characterMovement.semaphore.Unlock();
         });
@@ -77,6 +84,8 @@ public class CharacterHealth : MonoBehaviour
         {
             _textMesh.text = "X_X R.I.P.";
         }
+
+        _rumbler.Rumble(_dieRumble, _dieRumble, _dieRumbleDuration);
 
     }
 

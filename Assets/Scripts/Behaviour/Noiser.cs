@@ -4,20 +4,19 @@ using UnityEngine;
 
 public class Noiser : MonoBehaviour
 {
-
-    Listener[] _listeners;
+    MobRegister _mobRegister;
 
     private void Awake()
     {
-        _listeners = FindObjectsOfType<Listener>();
+        _mobRegister = FindObjectOfType<MobRegister>();
     }
 
     public void MakeNoise(Vector3 position, float range)
     {
-        if (_listeners != null)
+        if (_mobRegister.listeners != null)
         {
 
-            foreach (Listener listener in _listeners)
+            foreach (Listener listener in _mobRegister.listeners)
             {
                 listener.Noise(position, range, this);
             }
@@ -27,10 +26,10 @@ public class Noiser : MonoBehaviour
 
     public bool canBeHeared(Vector3 position, float range)
     {
-        if (_listeners != null)
+        if (_mobRegister.listeners != null)
         {
 
-            foreach (Listener listener in _listeners)
+            foreach (Listener listener in _mobRegister.listeners)
             {
                 if (listener.CanHearNoise(position, range))
                 {

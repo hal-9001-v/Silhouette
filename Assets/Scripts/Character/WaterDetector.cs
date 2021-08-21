@@ -5,12 +5,13 @@ using UnityEngine;
 
 public class WaterDetector : MonoBehaviour
 {
-    public Action<float> waterContactAction;
+    public Action<float, WaterBody> waterContactAction;
 
-    public void WaterContact(float damage)
+    public void WaterContact(float damage, WaterBody waterBody)
     {
         if (waterContactAction != null)
-            waterContactAction.Invoke(damage);
+            waterContactAction.Invoke(damage, waterBody);
+
     }
 
 }

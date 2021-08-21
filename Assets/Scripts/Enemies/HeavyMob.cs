@@ -4,6 +4,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(Navigator), typeof(Sighter), typeof(Melee))]
 [RequireComponent(typeof(Health), typeof(Listener), typeof(CharacterBodyRotation))]
+[RequireComponent(typeof(Rigidbody))]
 public class HeavyMob : MonoBehaviour
 {
     [Header("References")]
@@ -22,7 +23,7 @@ public class HeavyMob : MonoBehaviour
     [SerializeField] [Range(1f, 10)] float _meleeRange;
     [SerializeField] [Range(1f, 10)] float _meleeDamage;
     [SerializeField] [Range(1f, 10)] float _meleeDuration;
-    [SerializeField] [Range(1f, 10)] float _idleMeleeDuration;
+    [SerializeField] [Range(0.1f, 2f)] float _idleMeleeDuration;
     [SerializeField] [Range(1f, 10)] float _meleePush;
     [SerializeField] [Range(1f, 10)] float _timeToRecover;
     [SerializeField] [Range(1f, 10)] float _timeCheckingPlace;
@@ -32,15 +33,35 @@ public class HeavyMob : MonoBehaviour
     Melee _melee;
     Health _health;
     Listener _listener;
+    Rigidbody _rigidbody;
+
+    public bool isFighting
+    {
+        get
+        {
+            return _currentState == MobState.Pursue || _currentState == MobState.AttackIdle || _currentState == MobState.Attack;
+        }
+    }
+    public Listener listener
+    {
+        get
+        {
+            return _listener;
+        }
+    }
+
     CharacterBodyRotation _characterBodyRotation;
 
     MobState _currentState;
 
     Transform _target;
 
-    Vector3 _checkPlace;
+    //Stun State
+    Vector3 _stunDirection;
 
-    Coroutine _currentTimeCoroutine;
+    //Check Place State
+    Vector3 _checkPlace;
+    float _checkTime;
 
     Timer _timer;
 
@@ -64,6 +85,7 @@ public class HeavyMob : MonoBehaviour
         AttackIdle,
 
         Stunned,
+
         CheckPlace,
         CheckPlaceIdle,
         Dead
@@ -73,17 +95,6 @@ public class HeavyMob : MonoBehaviour
     private void Awake()
     {
         _navigator = GetComponent<Navigator>();
-
-        _navigator.targetPositionReachedAction += () =>
-        {
-            _navigator.Stop();
-
-            if (_currentTimeCoroutine != null)
-                StopCoroutine(_currentTimeCoroutine);
-
-            _currentTimeCoroutine = StartCoroutine(CheckPlaceTime(_timeCheckingPlace));
-
-        };
 
         _sighter = GetComponent<Sighter>();
 
@@ -98,6 +109,8 @@ public class HeavyMob : MonoBehaviour
 
         _listener = GetComponent<Listener>();
         _listener.hearedNoiseAction += NoiseHeared;
+
+        _rigidbody = GetComponent<Rigidbody>();
 
         _currentState = MobState.Idle;
 
@@ -114,7 +127,8 @@ public class HeavyMob : MonoBehaviour
     {
         var register = FindObjectOfType<MobRegister>();
 
-        if (register != null) {
+        if (register != null)
+        {
             register.mobs.Add(this);
         }
 
@@ -141,6 +155,8 @@ public class HeavyMob : MonoBehaviour
                 {
                     ChangeState(MobState.Pursue);
                 }
+
+                
                 break;
 
             case MobState.Pursue:
@@ -175,6 +191,7 @@ public class HeavyMob : MonoBehaviour
                 {
                     ChangeState(MobState.Pursue);
                 }
+
                 _characterBodyRotation.SetForward(_navigator.velocity);
                 break;
 
@@ -182,6 +199,10 @@ public class HeavyMob : MonoBehaviour
                 if (CheckForTarget())
                 {
                     ChangeState(MobState.Pursue);
+                }
+                else if (_timer.UpdateFixedTimer(_checkTime))
+                {
+                    ChangeState(MobState.Patrol);
                 }
 
                 _characterBodyRotation.SetTargetPosition(_checkPlace);
@@ -209,7 +230,14 @@ public class HeavyMob : MonoBehaviour
 
                 break;
 
+            
             case MobState.Stunned:
+                if (_timer.UpdateFixedTimer(_timeToRecover))
+                {
+                    ChangeState(MobState.Pursue);
+                }
+                _characterBodyRotation.SetForward(_stunDirection);
+
                 break;
 
             case MobState.Dead:
@@ -237,12 +265,23 @@ public class HeavyMob : MonoBehaviour
 
     void NoiseHeared(Vector3 position, Noiser source)
     {
-        GoCheckPlace(position);
+        if (!isFighting)
+        {
+            GoCheckPlace(position, _timeCheckingPlace);
+        }
+    }
+
+    public void GoCheckPlace(Vector3 position, float checkTime)
+    {
+        _checkPlace = position;
+        _checkTime = checkTime;
+
+        ChangeState(MobState.CheckPlace);
+
     }
 
     void TargetHit()
     {
-
         ChangeState(MobState.AttackIdle);
     }
 
@@ -291,14 +330,9 @@ public class HeavyMob : MonoBehaviour
 
 
             case MobState.Pursue:
-                _navigator.Pursue(_pursueSpeed, _target);
                 _timer.ResetFixedTimer();
 
-                var enviroment = _target.GetComponent<CharacterEnviroment>();
-                if (enviroment != null)
-                {
-                    enviroment.discoverCount++;
-                }
+                _navigator.Pursue(_pursueSpeed, _target);
 
                 _light.color = _fightColor;
                 break;
@@ -320,6 +354,7 @@ public class HeavyMob : MonoBehaviour
                 break;
 
             case MobState.Stunned:
+                _timer.ResetFixedTimer();
                 _navigator.Stop();
 
                 _light.color = _distressedColor;
@@ -330,7 +365,11 @@ public class HeavyMob : MonoBehaviour
                 break;
 
             case MobState.CheckPlace:
-                _navigator.GoToPosition(_pursueSpeed, _checkPlace);
+                _timer.ResetFixedTimer();
+                _navigator.GoToPosition(_pursueSpeed, _checkPlace, () =>
+                {
+                    ChangeState(MobState.CheckPlaceIdle);
+                });
 
                 _light.color = _distressedColor;
                 break;
@@ -353,6 +392,7 @@ public class HeavyMob : MonoBehaviour
 
     void Die(Vector3 source, float push, Transform hitter)
     {
+
         Hide();
 
         avaliableForPatrol = true;
@@ -394,9 +434,10 @@ public class HeavyMob : MonoBehaviour
         _light.enabled = true;
         _navigator.Continue();
     }
+
     void Hurt(Vector3 source, float push, Transform hitter)
     {
-        if (_currentState != MobState.Pursue && _currentState != MobState.AttackIdle)
+        if (!isFighting)
         {
             Stun(source, push, hitter);
         }
@@ -411,42 +452,10 @@ public class HeavyMob : MonoBehaviour
     void Stun(Vector3 hitSource, float push, Transform hitter)
     {
         ChangeState(MobState.Stunned);
-
-        var angles = transform.eulerAngles;
-
-        if (_currentTimeCoroutine != null)
-            StopCoroutine(_currentTimeCoroutine);
-
-        _currentTimeCoroutine = StartCoroutine(RecoverFromStun(_timeToRecover, angles, hitSource, hitter));
-
-        angles.z = 0;
-
-        transform.eulerAngles = angles;
-
-    }
-
-    IEnumerator RecoverFromStun(float timeToRecover, Vector3 angles, Vector3 source, Transform hitter)
-    {
-        yield return new WaitForSeconds(timeToRecover);
-
         _target = hitter;
 
-        transform.eulerAngles = angles;
-        ChangeState(MobState.Pursue);
-    }
-
-    IEnumerator CheckPlaceTime(float time)
-    {
-        yield return new WaitForSeconds(time);
-
-        ChangeState(MobState.Patrol);
-    }
-
-    public void GoCheckPlace(Vector3 position)
-    {
-        _checkPlace = position;
-        ChangeState(MobState.CheckPlace);
-
+        _stunDirection =  hitSource - transform.position;
+        _stunDirection.Normalize();
     }
 
 }

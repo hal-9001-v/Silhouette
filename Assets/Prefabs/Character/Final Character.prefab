@@ -910,6 +910,10 @@ MonoBehaviour:
   _textMesh: {fileID: 0}
   _knockUpDuration: 1
   _waterRecoverSpeed: 20
+  _hurtRumble: 0.5
+  _hurtRumbleDuration: 1
+  _dieRumble: 1
+  _dieRumbleDuration: 1.5
 --- !u!114 &1329870776
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -925,6 +929,8 @@ MonoBehaviour:
   _damage: 2
   _push: 20
   _hitDuration: 1
+  _hitRumblerSpeed: 0.4
+  _hitRumblerDuration: 0.05
 --- !u!114 &1329870777
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -940,7 +946,7 @@ MonoBehaviour:
   _meleeAttacks:
   - hitColliders:
     - {fileID: 778161746}
-    hitDuration: 0
+    hitDuration: 0.5
     damage: 1
     push: 3
   _animator: {fileID: 778161749}
@@ -1016,7 +1022,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a334aff99a6f56147b9d9b255a293bda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _closeDistance: 2
+  _closeDistance: 4.5
   _characterBodyRotation: {fileID: 3381380345250132665}
   _characterMovement: {fileID: 1966625586410651647}
   _rigidbody: {fileID: 1966625586410651640}

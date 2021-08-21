@@ -11,7 +11,7 @@ public class CharacterEnviroment : MonoBehaviour
     [SerializeField] CharacterBodyRotation _characterBodyRotation;
     [SerializeField] CharacterMovement _characterMovement;
     [SerializeField] Rigidbody _rigidbody;
-
+  
     MobRegister mobRegister;
 
     public bool isEnemyClose { get; private set; }

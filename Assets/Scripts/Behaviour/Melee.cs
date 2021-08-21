@@ -17,7 +17,7 @@ public class Melee : MonoBehaviour
     const string AttackTrigger = "Attack";
     const string AttackInteger = "AttackIndex";
 
-    private void Awake()
+    private void Start()
     {
         if (_meleeAttacks != null)
         {
