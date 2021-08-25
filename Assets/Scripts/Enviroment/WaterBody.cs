@@ -26,11 +26,11 @@ public class WaterBody : MonoBehaviour
 
     public Vector3 GetClosestPosition(Vector3 position)
     {
-        Vector3 closestPoint = LineMath.GetClosestPointOnLine(_lineRenderers[0], position);
+        Vector3 closestPoint = LineMath.GetClosestPointOnLine(_lineRenderers[0], position, false);
         Vector3 newPoint;
         for (int i = 1; i < _lineRenderers.Length; i++)
         {
-            newPoint = LineMath.GetClosestPointOnLine(_lineRenderers[i], position);
+            newPoint = LineMath.GetClosestPointOnLine(_lineRenderers[i], position, false);
 
             if (Vector3.Distance(closestPoint, position) > Vector3.Distance(newPoint, position))
             {

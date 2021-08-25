@@ -7,16 +7,23 @@ namespace GeneralTools
 {
     class LineMath
     {
-        public static Vector3 GetClosestPointOnLine(LineRenderer line, Vector3 position)
+        public static Vector3 GetClosestPointOnLine(LineRenderer line, Vector3 position, bool transformToWorldSpace)
         {
-            // Vector3 closestPosition = line.transform.TransformPoint(line.GetPosition(0));
-            Vector3 closestPosition = (line.GetPosition(0));
+            Vector3 closestPosition;
+
+            if (transformToWorldSpace)
+                closestPosition = line.transform.TransformPoint(line.GetPosition(0));
+            else
+                closestPosition = (line.GetPosition(0));
+
 
             for (int i = 1; i < line.positionCount; i++)
             {
-
-                //Vector3 newPosition = line.transform.TransformPoint(line.GetPosition(i));
-                Vector3 newPosition = line.GetPosition(i);
+                Vector3 newPosition;
+                if (transformToWorldSpace)
+                    newPosition = line.transform.TransformPoint(line.GetPosition(i));
+                else
+                    newPosition = line.GetPosition(i);
                 //Vector3 newPosition = line.GetPosition(i);
 
                 if (Vector3.Distance(position, newPosition) < Vector3.Distance(closestPosition, position))
@@ -30,13 +37,13 @@ namespace GeneralTools
 
         }
 
-        public static Vector3 GetClosestPointOnLines(LineRenderer[] lines, Vector3 position)
+        public static Vector3 GetClosestPointOnLines(LineRenderer[] lines, Vector3 position, bool transformToworldSpace)
         {
-            Vector3 closestPoint = GetClosestPointOnLine(lines[0], position);
+            Vector3 closestPoint = GetClosestPointOnLine(lines[0], position, transformToworldSpace);
             Vector3 newPoint;
             for (int i = 1; i < lines.Length; i++)
             {
-                newPoint = GetClosestPointOnLine(lines[i], position);
+                newPoint = GetClosestPointOnLine(lines[i], position, transformToworldSpace);
 
                 if (Vector3.Distance(closestPoint, position) > Vector3.Distance(newPoint, position))
                 {

@@ -11,7 +11,6 @@ public class CharacterHealth : MonoBehaviour
     [SerializeField] Rigidbody _rigidbody;
     [SerializeField] CharacterMovement _characterMovement;
     [SerializeField] CharacterAligner _characterAligner;
-    [SerializeField] TextMeshProUGUI _textMesh;
 
     [Header("Settings")]
     [SerializeField] [Range(0.1f, 2)] float _knockUpDuration;
@@ -20,6 +19,8 @@ public class CharacterHealth : MonoBehaviour
     [SerializeField] [Range(0f, 5)] float _hurtRumbleDuration;
     [SerializeField] [Range(0f, 1)] float _dieRumble;
     [SerializeField] [Range(0f, 5)] float _dieRumbleDuration;
+
+    UICommand _uiCommand;
 
     Health _health;
     WaterDetector _waterDetector;
@@ -36,15 +37,16 @@ public class CharacterHealth : MonoBehaviour
         _waterDetector.waterContactAction += ContactWithWater;
 
         _rumbler = FindObjectOfType<Rumbler>();
-        
+
+        _uiCommand = FindObjectOfType<UICommand>();
     }
 
 
     void HurtPlayer(Vector3 source, float push, Transform hitter)
     {
-        if (_textMesh != null)
+        if (_uiCommand)
         {
-            _textMesh.text = _health.CurrentHealth.ToString();
+            _uiCommand.SetHealth(_health.CurrentHealth);
         }
 
         StartCoroutine(KnockUpCharacter(_knockUpDuration));
@@ -80,9 +82,9 @@ public class CharacterHealth : MonoBehaviour
 
     void KillPlayer(Vector3 source, float push, Transform hitter)
     {
-        if (_textMesh != null)
+        if (_uiCommand != null)
         {
-            _textMesh.text = "X_X R.I.P.";
+            _uiCommand.SetHealth(0);
         }
 
         _rumbler.Rumble(_dieRumble, _dieRumble, _dieRumbleDuration);

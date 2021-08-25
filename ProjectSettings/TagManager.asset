@@ -14,9 +14,9 @@ TagManager:
   - Ground
   - Building
   - Player
-  - 
-  - 
-  - 
+  - AI PathFinding
+  - Collectable Physic Collision
+  - Collectable
   - 
   - 
   - 

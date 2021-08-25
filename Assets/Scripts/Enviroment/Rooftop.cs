@@ -10,12 +10,11 @@ public class Rooftop : MonoBehaviour
     [SerializeField] Collider[] _rooftopTriggers;
 
     [Space(5)]
-    [SerializeField] Collider[] _jumpTriggers;
-    [SerializeField] LineRenderer[] _jumpLines;
+    [SerializeField] Collider[] _groundTriggers;
+    [SerializeField] LineRenderer[] _groundLines;
 
     [Space(5)]
-    [SerializeField] Collider[] _fallTriggers;
-    [SerializeField] LineRenderer[] _fallLines;
+    [SerializeField] LineRenderer[] _roofLines;
 
     private void Awake()
     {
@@ -35,30 +34,22 @@ public class Rooftop : MonoBehaviour
 
         }
 
-        foreach (var collision in _jumpTriggers)
+        foreach (var collision in _groundTriggers)
         {
             var del = collision.gameObject.AddComponent<ColliderDelegate>();
 
             del.TriggerStayAction += JumpToRoof;
         }
-
-        foreach (var collision in _fallTriggers)
-        {
-            var del = collision.gameObject.AddComponent<ColliderDelegate>();
-
-            del.TriggerStayAction += FallFromRoof;
-        }
-
     }
 
-    public Vector3 GetClosestJumpPoint(Vector3 position)
+    public Vector3 GetClosestRoofPoint(Vector3 position, bool transformToWorldSpace)
     {
-        return LineMath.GetClosestPointOnLines(_jumpLines, position);
+        return LineMath.GetClosestPointOnLines(_roofLines, position, transformToWorldSpace);
     }
 
-    public Vector3 GetClosestFallPoint(Vector3 position)
+    public Vector3 GetClosestGroundPoint(Vector3 position, bool transformToWorldSpace)
     {
-        return LineMath.GetClosestPointOnLines(_fallLines, position);
+        return LineMath.GetClosestPointOnLines(_groundLines, position, transformToWorldSpace);
     }
     void JumpToRoof(Transform caller, Collider other, Vector3 position)
     {
@@ -99,5 +90,47 @@ public class Rooftop : MonoBehaviour
             //nav.(this);
         }
     }
+    /*
+    [ContextMenu("Update Patrol Points")]
+    void TranslateLinesToLocal()
+    {
+        if (_fallLines != null && _fallLines.Length != 0)
+        {
+            foreach (LineRenderer line in _fallLines)
+            {
 
+                Vector3[] points = new Vector3[line.positionCount];
+
+                line.GetPositions(points);
+
+                for (int i = 0; i < points.Length; i++)
+                {
+                    points[i] = transform.InverseTransformPoint(points[i]);
+                }
+
+                line.SetPositions(points);
+            }
+        }
+
+        if (_jumpLines != null && _jumpLines.Length != 0)
+        {
+            foreach (LineRenderer line in _jumpLines)
+            {
+
+                Vector3[] points = new Vector3[line.positionCount];
+
+                line.GetPositions(points);
+
+                for (int i = 0; i < points.Length; i++)
+                {
+                    points[i] = transform.InverseTransformPoint(points[i]);
+                }
+
+                line.SetPositions(points);
+            }
+        }
+    }
+    */
 }
+
+

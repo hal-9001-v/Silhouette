@@ -4,7 +4,7 @@ using UnityEngine;
 public class Health : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] [Range(1, 10)] float _maxHealth;
+    [SerializeField] [Range(0, 10)] float _maxHealth;
     public bool CanGetHurt = true;
     public float CurrentHealth;
     //{ get; private set; }
@@ -14,7 +14,8 @@ public class Health : MonoBehaviour
     public enum TypeOfCharacter
     {
         Player,
-        Enemy
+        Enemy,
+        Breakable
     }
 
     /// <summary>
@@ -48,7 +49,7 @@ public class Health : MonoBehaviour
     {
         if (CanGetHurt)
         {
-            CurrentHealth -= dmg;
+            CurrentHealth -= Mathf.Abs(dmg);
 
             //Debug.Log("Hurt");
             if (CurrentHealth > 0)

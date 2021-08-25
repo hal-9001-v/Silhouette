@@ -131,7 +131,7 @@ public class CharacterBodyRotation : MonoBehaviour
     {
         if (_body != null && _rigidbody != null)
         {
-            if (_rigidbody.velocity.x != 0 || _rigidbody.velocity.z != 0)
+            if (_rigidbody.velocity.x != 0 && _rigidbody.velocity.z != 0)
             {
                 Quaternion prevRotation = _body.rotation;
 
