@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class CharacterBodyRotation : MonoBehaviour
 {
     [Header("References")]
@@ -34,6 +35,7 @@ public class CharacterBodyRotation : MonoBehaviour
     private void Awake()
     {
         semaphore = new Semaphore();
+        _rigidbody = GetComponent<Rigidbody>();
     }
 
     private void FixedUpdate()
@@ -72,11 +74,9 @@ public class CharacterBodyRotation : MonoBehaviour
     /// <summary>
     /// Body will rotate towards assigned rigidbody's velocity.
     /// </summary>
-    public void SetMovementRotation(Rigidbody rigidbody)
+    public void SetMovementRotation()
     {
         _rotationType = RotationType.Movement;
-
-        _rigidbody = rigidbody;
     }
 
     /// <summary>
@@ -144,8 +144,6 @@ public class CharacterBodyRotation : MonoBehaviour
                 _body.transform.eulerAngles = rot;
             }
         }
-
-
     }
 
     void TargetRotation(Transform target)

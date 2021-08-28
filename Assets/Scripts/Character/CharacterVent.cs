@@ -8,17 +8,18 @@ public class CharacterVent : InputComponent
     [Header("References")]
     [SerializeField] CinemachineVirtualCamera _camera;
     [SerializeField] Transform _cameraPosition;
+    [SerializeField] Mover _mover;
 
     [SerializeField] CharacterMovement _characterMovement;
+    [SerializeField] CharacterMelee _characterMelee;
+    [SerializeField] SightTrigger _sightTrigger;
     [SerializeField] CharacterBodyRotation _characterBodyRotation;
-    [SerializeField] Rigidbody _rigidbody;
 
     [SerializeField] Collider _basicCollider;
     [SerializeField] Collider _ventCollider;
 
     [Header("Settings")]
     [SerializeField] [Range(1, 10)] float _speed;
-    [SerializeField] [Range(1, 10)] float _rotationLerp;
 
     PlayerCamera _playerCamera;
 
@@ -26,88 +27,84 @@ public class CharacterVent : InputComponent
 
     public Semaphore semaphore;
 
+    int _ventCounter;
+
     public bool isOnVent { get; private set; }
 
     void Awake()
     {
         _playerCamera = FindObjectOfType<PlayerCamera>();
-
         semaphore = new Semaphore();
     }
 
-    public void EnterVent(Vector3 position)
+    public void AddVentCounter()
     {
-        if (isOnVent == false)
+        _ventCounter++;
+    }
+
+    public void RemoveVentCounter()
+    {
+        if (_ventCounter > 0)
+        {
+            _ventCounter--;
+
+            if (_ventCounter == 0)
+            {
+                ExitVent();
+            }
+        }
+    }
+
+    void EnterVent()
+    {
+        if (_ventCounter > 0)
         {
             isOnVent = true;
             _playerCamera.SetActiveCamera(_camera, PlayerCamera.TypeOfActiveCamera.Vent);
             _camera.transform.position = _cameraPosition.position;
-            _characterBodyRotation.SetMovementRotation(_rigidbody);
+            _characterBodyRotation.SetMovementRotation();
 
-            _characterMovement.semaphore.Lock();
 
             _basicCollider.enabled = false;
             _ventCollider.enabled = true;
 
-            transform.position = position;
-        }
+            _characterMovement.semaphore.Lock();
+            _characterMelee.semaphore.Lock();
 
+            if (_sightTrigger != null) {
+                _sightTrigger.canBeSeen = false;
+            }
+        }
     }
 
     public void ExitVent()
     {
-        if (isOnVent == true)
+        if (isOnVent)
         {
+            _ventCounter = 0;
+
             isOnVent = false;
             _playerCamera.ResetCamera();
-            _characterMovement.semaphore.Unlock();
 
             _basicCollider.enabled = true;
             _ventCollider.enabled = false;
-        }
 
+            _characterMovement.semaphore.Unlock();
+            _characterMelee.semaphore.Unlock();
+
+            if (_sightTrigger != null)
+            {
+                _sightTrigger.canBeSeen = true;
+            }
+        }
     }
 
     private void FixedUpdate()
     {
         if (semaphore.isOpen && isOnVent)
         {
-            MovePlayer(_speed);
-        }
-    }
-
-    void MovePlayer(float speed)
-    {
-        if (_rigidbody != null && _playerCamera != null)
-        {
-
-            if (_moveInput == Vector2.zero)
-            {
-                _rigidbody.velocity = new Vector3(0, _rigidbody.velocity.y, 0);
-
-            }
-            else
-            {
-                #region Apply movement in camera Direction
-                Vector3 targetVelocity;
-
-                targetVelocity = _playerCamera.GetForward() * _moveInput.y + _playerCamera.GetRight() * _moveInput.x;
-
-                targetVelocity.y = 0;
-                targetVelocity.Normalize();
-                targetVelocity *= speed;
-
-                targetVelocity = targetVelocity - _rigidbody.velocity;
-
-                targetVelocity.y = 0;
-
-                _rigidbody.AddForce(targetVelocity, ForceMode.VelocityChange);
-
-                #endregion
-
-            }
-
-
+            if (_mover)
+                _mover.Move(_moveInput, _speed);
         }
     }
 
@@ -121,6 +118,11 @@ public class CharacterVent : InputComponent
         input.Character.Movement.canceled += ctx =>
         {
             _moveInput = Vector2.zero;
+        };
+
+        input.Character.Interact.performed += ctx =>
+        {
+            EnterVent();
         };
 
     }

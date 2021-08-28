@@ -33,6 +33,9 @@ public class SightTrigger : MonoBehaviour
     [SerializeField] [Range(0, 1)] float _pointRadius = 0.2f;
     [SerializeField] Color _pointColor = Color.blue;
 
+    [HideInInspector]
+    public bool canBeSeen = true;
+
     public enum TypeOfTrigger
     {
         Player,

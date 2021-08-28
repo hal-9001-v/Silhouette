@@ -10,7 +10,6 @@ public class CharacterEnviroment : MonoBehaviour
     [SerializeField] [Range(0.1f, 10)] float _closeDistance;
     [SerializeField] CharacterBodyRotation _characterBodyRotation;
     [SerializeField] CharacterMovement _characterMovement;
-    [SerializeField] Rigidbody _rigidbody;
   
     MobRegister mobRegister;
 
@@ -48,8 +47,6 @@ public class CharacterEnviroment : MonoBehaviour
 
         }
 
-
-
         //Decide Rotation
         if (isEnemyClose && !_characterMovement.isSprinting)
         {
@@ -59,7 +56,7 @@ public class CharacterEnviroment : MonoBehaviour
         else
         {
 
-            _characterBodyRotation.SetMovementRotation(_rigidbody);
+            _characterBodyRotation.SetMovementRotation();
         }
 
         //Gather enemies around

@@ -38,4 +38,16 @@ public class Breakable : MonoBehaviour
     {
         Destroy(gameObject);
     }
+
+    [ContextMenu("Break")]
+    void Break()
+    {
+        _breakEvent.Invoke();
+    }
+
+    [ContextMenu("Hit")]
+    void Hit()
+    {
+        _hitEvent.Invoke();
+    }
 }

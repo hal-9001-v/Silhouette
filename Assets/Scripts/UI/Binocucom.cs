@@ -6,7 +6,6 @@ using Cinemachine;
 public class Binocucom : InputComponent
 {
     [Header("References")]
-    [SerializeField] CanvasGroup _canvasGroup;
     [SerializeField] CinemachineVirtualCamera _camera;
     [SerializeField] Transform _standCameraPosition;
     [SerializeField] Transform _crawlCameraPosition;
@@ -23,11 +22,14 @@ public class Binocucom : InputComponent
     [SerializeField] [Range(0f, 5)] float _scrollChange = 80;
     PlayerCamera _playerCamera;
 
+    UICommand _uiCommand;
+
     bool _displayed;
 
     private void Awake()
     {
         _playerCamera = FindObjectOfType<PlayerCamera>();
+        _uiCommand = FindObjectOfType<UICommand>();
 
     }
 
@@ -39,14 +41,19 @@ public class Binocucom : InputComponent
     public void DisplayBinocucom()
     {
 
-        if (_canvasGroup != null && _playerCamera != null)
+        if (_playerCamera != null)
         {
+            if (_uiCommand)
+            {
+                _uiCommand.DisplayBinocucom();
+            }
+            _displayed = true;
+
+
             if (_characterVent.isOnVent) _camera.transform.position = _crawlCameraPosition.position;
             else _camera.transform.position = _standCameraPosition.position;
 
             _camera.m_Lens.FieldOfView = _maxFOV;
-            _canvasGroup.alpha = 1;
-            _displayed = true;
 
             _playerCamera.SetActiveCamera(_camera, PlayerCamera.TypeOfActiveCamera.Binocucom);
 
@@ -59,9 +66,12 @@ public class Binocucom : InputComponent
 
     void HideBinocucom()
     {
-        if (_canvasGroup != null && _playerCamera != null)
+        if (_playerCamera != null)
         {
-            _canvasGroup.alpha = 0;
+            if (_uiCommand != null)
+            {
+                _uiCommand.HideBinocucom();
+            }
             _displayed = false;
 
             _playerCamera.ResetCameraToPrevious();

@@ -79,7 +79,7 @@ public class Sighter : MonoBehaviour
     {
         foreach (SightTrigger trigger in _targets)
         {
-            if (AnyPointOnSight(trigger.GetSightPoints(), _spotLight.transform.position, _spotLight.transform.forward, _spotLight.range, _spotLight.spotAngle, true, _rayCastBlockingMask))
+            if (trigger.canBeSeen && AnyPointOnSight(trigger.GetSightPoints(), _spotLight.transform.position, _spotLight.transform.forward, _spotLight.range, _spotLight.spotAngle, true, _rayCastBlockingMask))
             {
                 return trigger;
             }

@@ -2,87 +2,70 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class Mover : MonoBehaviour
 {
-    [Header("References")]
-
-    [Space(5)]
-    [SerializeField] Transform _groundCheck;
-
-    [Space(5)]
-    [Header("Settings")]
-
-    //[Range(1, 10)]
-    //[SerializeField] float _inAirSpeed = 3;
-
-    [Range(0.01f, 1)]
-    [SerializeField] float _ledgeGrabRange;
-
-
-    [Range(0, 90)]
-    [SerializeField] float _ledgeGrabAngle;
-
-    [Range(0.1f, 1)]
-    [SerializeField]
-    float _groundCheckRadius = 0.2f;
-
-    [SerializeField]
-    LayerMask _groundMask;
-
-    public Semaphore semaphore;
+    Rigidbody _rigidbody;
+    PlayerCamera _playerCamera;
 
     private void Awake()
     {
-        semaphore = new Semaphore();
+        _rigidbody = GetComponent<Rigidbody>();
+        _playerCamera = FindObjectOfType<PlayerCamera>();
+
     }
 
-
-    public bool isGrounded
+    public void Move(Vector2 input, float speed)
     {
-        get
+        if (input != Vector2.zero)
         {
-            if (_groundCheck != null)
-            {
-                var groundCollisions = Physics.OverlapSphere(_groundCheck.position, _groundCheckRadius, _groundMask);
+            Vector3 velocity = _playerCamera.GetRight() * input.x + _playerCamera.GetForward() * input.y;
+            velocity.y = 0;
 
-
-                if (groundCollisions.Length != 0)
-                    return true;
-
-                /*foreach (Collider c in groundCollisions)
-                {
-                    return true;
-                }
-                */
-            }
-
-            return false;
+            Move(velocity.normalized * speed);
         }
-
-
-
+        else
+        {
+            StopMovement();
+        }
     }
 
-    public void MovePlayer(Vector3 direction, float speed, Rigidbody rigidbody, ForceMode mode)
+    public void Move(Vector3 velocity)
     {
-        direction.y = 0;
-        direction.Normalize();
-        direction *= speed;
+        if (_rigidbody != null)
+        {
+            #region Apply movement in camera Direction
 
-        //_rigidbody.AddForce(totalVelocity, ForceMode.VelocityChange);
+            velocity = velocity - _rigidbody.velocity;
+            velocity.y = 0;
 
-        direction = direction - rigidbody.velocity;
+            _rigidbody.AddForce(velocity, ForceMode.VelocityChange);
 
-        direction.y = 0;
+            #endregion
 
-        rigidbody.AddForce(direction, mode);
+
+        }
     }
+
+    public void StopMovement()
+    {
+        if (_rigidbody != null)
+        {
+            var velocity = _rigidbody.velocity;
+
+            velocity.x = 0;
+            velocity.z = 0;
+
+            _rigidbody.velocity = velocity;
+        }
+    }
+
 
     /// <summary>
     /// Launch character on Up direction to specified height
     /// </summary>
     /// <param name="height"></param>
-    public void LaunchUp(float height, Rigidbody rigidbody)
+    public void LaunchUp(float height)
     {
         Vector3 jumpVelocity = Vector3.zero;
 
@@ -92,20 +75,22 @@ public class Mover : MonoBehaviour
 
         jumpVelocity.y = launchMagnitude;
 
-        Launch(jumpVelocity, rigidbody);
+        Launch(jumpVelocity);
+
     }
 
-    public void Push(Vector3 velocity, Rigidbody rigidbody)
+    public void Push(Vector3 velocity)
     {
-        Launch(velocity, rigidbody);
+        Launch(velocity);
+
     }
 
-    void Launch(Vector3 velocity, Rigidbody rigidbody)
+    public void Launch(Vector3 velocity)
     {
-        var currentVerticalVelocity = rigidbody.velocity;
+        var currentVerticalVelocity = _rigidbody.velocity;
         currentVerticalVelocity.x = 0;
         currentVerticalVelocity.z = 0;
-        rigidbody.AddForce(velocity - currentVerticalVelocity, ForceMode.VelocityChange);
+        _rigidbody.AddForce(velocity - currentVerticalVelocity, ForceMode.VelocityChange);
 
     }
 

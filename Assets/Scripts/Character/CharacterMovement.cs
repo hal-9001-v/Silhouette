@@ -4,6 +4,7 @@ using UnityEngine;
 using Cinemachine;
 using System;
 
+[RequireComponent(typeof(Mover))]
 public class CharacterMovement : InputComponent
 {
     [Header("References")]
@@ -15,7 +16,6 @@ public class CharacterMovement : InputComponent
     [Space(5)]
     [SerializeField] CharacterAnimationCommand _animationCommand;
     [SerializeReference] CharacterEnviroment _characterEnviroment;
-    [SerializeField] PlayerCamera _playerCamera;
     [SerializeField] Noiser _noiser;
 
     [Space(5)]
@@ -66,6 +66,8 @@ public class CharacterMovement : InputComponent
     [SerializeField] Color _jumpHeightColor = Color.blue;
     [SerializeField] Color _groundCheckColor = Color.yellow;
 
+    Mover _mover;
+
     public Semaphore semaphore;
 
     public bool isMoving { get; private set; }
@@ -106,6 +108,9 @@ public class CharacterMovement : InputComponent
     {
         semaphore = new Semaphore();
         _crawlCollider.enabled = false;
+
+        _mover = GetComponent<Mover>();
+
     }
 
     private void Start()
@@ -175,7 +180,7 @@ public class CharacterMovement : InputComponent
                     break;
 
                 case State.RunMove:
-                    MovePlayer(_runningSpeed, ForceMode.VelocityChange);
+                    _mover.Move(_moveInput, _runningSpeed);
 
                     CheckTransitions();
 
@@ -186,7 +191,8 @@ public class CharacterMovement : InputComponent
                     break;
 
                 case State.SprintMove:
-                    MovePlayer(_sprintSpeed, ForceMode.VelocityChange);
+                    _mover.Move(_moveInput, _sprintSpeed);
+
                     _noiser.MakeNoise(transform.position, _sprintNoiseRange);
 
                     CheckTransitions();
@@ -201,7 +207,7 @@ public class CharacterMovement : InputComponent
                 case State.CreepIdle:
 
                     CheckTransitions();
-                    
+
                     if (_inputJump && isGrounded)
                         ChangeState(State.JumpStart);
 
@@ -210,7 +216,7 @@ public class CharacterMovement : InputComponent
 
 
                 case State.CreepMove:
-                    MovePlayer(_creepingSpeed, ForceMode.VelocityChange);
+                    _mover.Move(_moveInput, _creepingSpeed);
 
                     CheckTransitions();
 
@@ -233,7 +239,7 @@ public class CharacterMovement : InputComponent
                     break;
 
                 case State.JumpIdle:
-                    MovePlayer(_inAirSpeed, ForceMode.VelocityChange);
+                    _mover.Move(_moveInput, _inAirSpeed);
 
                     if (CanGrabLedge())
                     {
@@ -251,15 +257,13 @@ public class CharacterMovement : InputComponent
                         }
 
                     }
-
-
-
                     break;
 
 
 
                 case State.SecondJump:
-                    MovePlayer(_inAirSpeed, ForceMode.VelocityChange);
+                    _mover.Move(_moveInput, _inAirSpeed);
+
                     if (CanGrabLedge())
                     {
                         ChangeState(State.AtLedge);
@@ -385,46 +389,6 @@ public class CharacterMovement : InputComponent
         _currentState = nextState;
     }
 
-    public void MovePlayer(float speed, ForceMode mode)
-    {
-        if (_rigidbody != null && _playerCamera != null)
-        {
-
-            if (_moveInput == Vector2.zero)
-            {
-                _rigidbody.velocity = new Vector3(0, _rigidbody.velocity.y, 0);
-
-            }
-            else
-            {
-                #region Apply movement in camera Direction
-                Vector3 targetVelocity;
-
-                targetVelocity = _playerCamera.GetForward() * _moveInput.y + _playerCamera.GetRight() * _moveInput.x;
-
-                targetVelocity.y = 0;
-                //targetVelocity.Normalize();
-                targetVelocity *= speed;
-
-                //_rigidbody.AddForce(totalVelocity, ForceMode.VelocityChange);
-
-                targetVelocity = targetVelocity - _rigidbody.velocity;
-
-                targetVelocity.y = 0;
-
-                _rigidbody.AddForce(targetVelocity, mode);
-
-                #endregion
-
-
-            }
-
-
-        }
-
-
-    }
-
     bool CanGrabLedge()
     {
         if (_downRaycastPoint != null && _upRaycastPoint != null && _rigidbody.velocity.y < 0)
@@ -464,34 +428,16 @@ public class CharacterMovement : InputComponent
     /// <param name="height"></param>
     public void LaunchUp(float height)
     {
-        Vector3 jumpVelocity = Vector3.zero;
-
-        float launchMagnitude = 2 * Mathf.Abs(Physics.gravity.y) * height;
-
-        launchMagnitude = Mathf.Pow(launchMagnitude, 0.5f);
-
-        jumpVelocity.y = launchMagnitude;
-
-        Launch(jumpVelocity);
+        _mover.LaunchUp(height);
 
         ChangeState(State.Launched);
     }
 
     public void Push(Vector3 velocity)
     {
-        Launch(velocity);
+        _mover.Push(velocity);
 
         ChangeState(State.Launched);
-    }
-
-    void Launch(Vector3 velocity)
-    {
-        var currentVerticalVelocity = _rigidbody.velocity;
-        currentVerticalVelocity.x = 0;
-        currentVerticalVelocity.z = 0;
-        _rigidbody.AddForce(velocity - currentVerticalVelocity, ForceMode.VelocityChange);
-
-        _animationCommand.Jump();
     }
 
     public override void SetInput(PlatformMap input)

@@ -5,49 +5,46 @@ using UnityEngine;
 public class Vent : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] Transform[] _entries;
-    [SerializeField] Collider[] _exitColliders;
-    [SerializeField] CharacterVent _characterVent;
+    [SerializeField] Collider[] _ventColliders;
+
     // Start is called before the first frame update
     void Awake()
     {
-        _characterVent = FindObjectOfType<CharacterVent>();
-
-        foreach (Collider collider in _exitColliders)
+        foreach (Collider collider in _ventColliders)
         {
             var del = collider.gameObject.AddComponent<ColliderDelegate>();
 
-            del.TriggerEnterAction += ExitCharacter;
+            del.TriggerEnterAction += EnterVent;
+            del.TriggerExitAction += ExitVent;
         }
 
     }
 
-    public void EnterVent(int index)
-    {
-        if (_entries != null && _entries.Length != 0)
-        {
-            if (index >= 0 && index < _entries.Length && _entries[index] != null)
-            {
-                _characterVent.EnterVent(_entries[index].position);
-            }
-        }
-    }
-
-
-
-    void ExitCharacter(Transform source, Collider coll, Vector3 pos)
+    public void EnterVent(Transform source, Collider coll, Vector3 pos)
     {
         var character = coll.GetComponent<CharacterVent>();
 
         if (character != null)
         {
-            if (character.isOnVent)
-            {
-                character.ExitVent();
-            }
+            character.AddVentCounter();
+        }
+    }
 
+    void ExitVent(Transform source, Collider coll, Vector3 pos)
+    {
+        var character = coll.GetComponent<CharacterVent>();
+
+        if (character != null)
+        {
+            character.RemoveVentCounter();
         }
 
     }
 
+    public void ForceExit() {
+        var character = FindObjectOfType<CharacterVent>();
+
+        if (character)
+            character.ExitVent();
+    }
 }

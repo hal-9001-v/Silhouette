@@ -18,15 +18,10 @@ public class Navigator : MonoBehaviour
     [SerializeField] [Range(0.01f, 1)] float _patrolDistance = 0.1f;
     [SerializeField] [Range(0.01f, 5)] float _pursueDistance = 0.1f;
     [SerializeField] [Range(0.01f, 5)] float _checkingPlaceDistance = 0.1f;
-    [SerializeField] [Range(0.01f, 5)] float _jumpLineDistance = 0.1f;
-    [SerializeField] [Range(0.01f, 5)] float _ImpulseToLinePoint = 0.1f;
 
     public Action patrolPointReachedAction;
     public Action pursueReachedAction;
     Action _targetPositionReachedAction;
-
-    Rigidbody _rigidbody;
-    GroundChecker _groundChecker;
 
     public Vector3 velocity
     {
@@ -38,13 +33,9 @@ public class Navigator : MonoBehaviour
 
     float _desiredSpeed;
 
-    Vector3 _groundPoint;
-    Vector3 _roofPoint;
-
     int _currentPatrolPoint;
 
     Transform _target;
-    Pursuable _pursuable;
 
     //Used for an specific position with no changes
     Vector3 _targetPosition;
@@ -57,28 +48,14 @@ public class Navigator : MonoBehaviour
 
         Pursue,
         Patrol,
-        GoingToPosition,
-
-        GoToJumpPoint,
-        Jump,
-        ImpulseToRoofPoint,
-
-        GoToFallPoint,
-        Fall,
-
-        Land
+        GoingToPosition
     }
 
     // Start is called before the first frame update
     void Awake()
     {
-        _rigidbody = GetComponent<Rigidbody>();
-        _groundChecker = GetComponent<GroundChecker>();
-
         _currentPatrolPoint = -1;
         SetNextPatrolPoint();
-
-
     }
 
     Transform SetNextPatrolPoint()
@@ -136,7 +113,6 @@ public class Navigator : MonoBehaviour
         _navMeshAgent.speed = speed;
 
         _target = target;
-        _pursuable = target.GetComponent<Pursuable>();
 
         ChangeState(NavState.Pursue);
 
@@ -178,17 +154,6 @@ public class Navigator : MonoBehaviour
     float HorizontalDistance(Vector3 a, Vector3 b)
     {
         return Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
-    }
-
-    public void JumpIntoRooftop(Rooftop rooftop)
-    {
-        if (_pursuable != null && _pursuable.currentRooftop == rooftop)
-        {
-            if (_currentState != NavState.GoToJumpPoint && _currentState != NavState.Jump)
-            {
-                ChangeState(NavState.GoToJumpPoint);
-            }
-        }
     }
 
     private void FixedUpdate()
@@ -257,37 +222,6 @@ public class Navigator : MonoBehaviour
 
                 break;
 
-            case NavState.GoToJumpPoint:
-
-                _navMeshAgent.SetDestination(_groundPoint);
-
-                var distance = HorizontalDistance(_navMeshAgent.transform.position, _groundPoint);
-                if (HorizontalDistance(_navMeshAgent.transform.position, _groundPoint) < _jumpLineDistance)
-                {
-                    ChangeState(NavState.Jump);
-                }
-
-                break;
-
-            case NavState.Jump:
-
-                if (transform.position.y >= _roofPoint.y)
-                {
-                    ChangeState(NavState.ImpulseToRoofPoint);
-                }
-
-                break;
-
-            case NavState.ImpulseToRoofPoint:
-
-                if (_groundChecker.isGrounded)
-                {
-                    ChangeState(NavState.Land);
-                }
-
-                break;
-
-
             default:
                 break;
         }
@@ -312,7 +246,8 @@ public class Navigator : MonoBehaviour
                 _navMeshAgent.enabled = true;
 
                 _targetPosition = _patrolRoute.patrolPoints[_currentPatrolPoint].position;
-
+                
+                Continue();
                 break;
 
             case NavState.Pursue:
@@ -326,57 +261,6 @@ public class Navigator : MonoBehaviour
 
                 break;
 
-            case NavState.Jump:
-                _navMeshAgent.enabled = false;
-                //_navMeshAgent.isStopped = true;
-
-                Vector3 jumpVelocity = Vector3.zero;
-                jumpVelocity.y = PhysicsMath.LaunchSpeedForHeight(_roofPoint.y - transform.position.y) * 1.25f;
-
-                _rigidbody.isKinematic = false;
-                _rigidbody.useGravity = true;
-                _rigidbody.AddForce(jumpVelocity, ForceMode.VelocityChange);
-
-                break;
-
-            case NavState.GoToJumpPoint:
-                _navMeshAgent.enabled = true;
-
-                _groundPoint = _pursuable.currentRooftop.GetClosestGroundPoint(transform.position, true);
-                _roofPoint = _pursuable.currentRooftop.GetClosestRoofPoint(_groundPoint, true);
-
-                break;
-
-            case NavState.ImpulseToRoofPoint:
-
-                Vector3 toPointVelocity = _roofPoint - transform.position;
-                toPointVelocity.y = 0;
-
-                toPointVelocity = toPointVelocity.normalized * 3;
-
-                _rigidbody.AddForce(toPointVelocity, ForceMode.VelocityChange);
-
-                break;
-
-            case NavState.GoToFallPoint:
-                _navMeshAgent.enabled = true;
-
-                break;
-
-            case NavState.Fall:
-                _navMeshAgent.enabled = false;
-                break;
-
-            case NavState.Land:
-                _navMeshAgent.enabled = true;
-                _navMeshAgent.isStopped = false;
-
-
-                _rigidbody.isKinematic = true;
-                _rigidbody.useGravity = false;
-
-                ChangeState(NavState.Pursue);
-                break;
 
         }
 

@@ -33,7 +33,6 @@ public class HeavyMob : MonoBehaviour
     Melee _melee;
     Health _health;
     Listener _listener;
-    Rigidbody _rigidbody;
 
     public bool isFighting
     {
@@ -109,8 +108,6 @@ public class HeavyMob : MonoBehaviour
 
         _listener = GetComponent<Listener>();
         _listener.hearedNoiseAction += NoiseHeared;
-
-        _rigidbody = GetComponent<Rigidbody>();
 
         _currentState = MobState.Idle;
 
