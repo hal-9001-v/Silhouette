@@ -9,19 +9,23 @@ using GeneralTools;
 public class Navigator : MonoBehaviour
 {
     const int JumpMeshLink = 2;
-    
+
     [Header("References")]
     [SerializeField] NavMeshAgent _navMeshAgent;
-    [SerializeField] PatrolRoute _patrolRoute;
 
     [Header("Settings")]
-    [SerializeField] [Range(0.01f, 1)] float _patrolDistance = 0.1f;
-    [SerializeField] [Range(0.01f, 5)] float _pursueDistance = 0.1f;
-    [SerializeField] [Range(0.01f, 5)] float _checkingPlaceDistance = 0.1f;
+    [SerializeField] [Range(0.01f, 1)] float _reachingDistance = 0.1f;
+    [SerializeField] [Range(0.01f, 10)] float _warpDistance = 1f;
 
     public Action patrolPointReachedAction;
     public Action pursueReachedAction;
     Action _targetPositionReachedAction;
+
+
+
+    public float distanceToTarget { get; private set; }
+
+    PatrolList _patrolList;
 
     public Vector3 velocity
     {
@@ -31,9 +35,8 @@ public class Navigator : MonoBehaviour
         }
     }
 
-    float _desiredSpeed;
 
-    int _currentPatrolPoint;
+    float _desiredSpeed;
 
     Transform _target;
 
@@ -54,45 +57,19 @@ public class Navigator : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        _currentPatrolPoint = -1;
-        SetNextPatrolPoint();
-    }
-
-    Transform SetNextPatrolPoint()
-    {
-        if (_patrolRoute != null && _patrolRoute.patrolPoints.Length != 0)
-        {
-            if (_currentPatrolPoint >= _patrolRoute.patrolPoints.Length - 1)
-            {
-                _currentPatrolPoint = 0;
-            }
-            else
-            {
-                _currentPatrolPoint++;
-            }
-
-            return _patrolRoute.patrolPoints[_currentPatrolPoint];
-        }
-
-        return null;
+        _patrolList = new PatrolList();
     }
 
     public void SetPatrolRoute(PatrolRoute route)
     {
-        _patrolRoute = route;
-        _currentPatrolPoint = 0;
+        _patrolList.SetPoints(route.patrolPoints);
 
-        transform.position = route.patrolPoints[_currentPatrolPoint].position;
-    }
-
-    public void WarpNavMesh()
-    {
-        _navMeshAgent.Warp(transform.position);
+        transform.position = _patrolList.GetCurrentPoint().position;
     }
 
     public void Patrol(float speed)
     {
-        if (_patrolRoute != null)
+        if (_patrolList.points != null)
         {
             _desiredSpeed = speed;
             _navMeshAgent.speed = speed;
@@ -135,20 +112,12 @@ public class Navigator : MonoBehaviour
 
     public void Stop()
     {
-        if (_navMeshAgent.isOnNavMesh)
-            _navMeshAgent.isStopped = true;
-
-        enabled = false;
-
-        ChangeState(NavState.Idle);
+        _navMeshAgent.isStopped = true;
     }
 
     public void Continue()
     {
-        if (_navMeshAgent.isOnNavMesh)
-            _navMeshAgent.isStopped = false;
-
-        enabled = true;
+        _navMeshAgent.isStopped = false;
     }
 
     float HorizontalDistance(Vector3 a, Vector3 b)
@@ -158,21 +127,24 @@ public class Navigator : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!_navMeshAgent.isOnNavMesh)
+        if (_navMeshAgent.isOnNavMesh == false)
         {
-            _navMeshAgent.Warp(transform.position);
+            WarpAgent();
         }
 
         switch (_currentState)
         {
             //PATROL STATE
             case NavState.Patrol:
-                if (_patrolRoute == null) return;
+                if (_patrolList.points.Length == 0) return;
 
-                if (HorizontalDistance(_navMeshAgent.transform.position, _targetPosition) < _patrolDistance)
+                if (_navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
+                    _navMeshAgent.SetDestination(_patrolList.GetCurrentPoint().position);
+
+                distanceToTarget = HorizontalDistance(_navMeshAgent.transform.position, _patrolList.GetCurrentPoint().position);
+                if (distanceToTarget < _reachingDistance)
                 {
-                    _targetPosition = SetNextPatrolPoint().position;
-                    _navMeshAgent.SetDestination(_targetPosition);
+                    _patrolList.GetNextPoint();
 
                     if (patrolPointReachedAction != null)
                     {
@@ -183,15 +155,17 @@ public class Navigator : MonoBehaviour
 
             //PURSUE STATE
             case NavState.Pursue:
-                _navMeshAgent.SetDestination(_target.position);
+                if (_navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
+                    _navMeshAgent.SetDestination(_target.position);
 
-                if (HorizontalDistance(_navMeshAgent.transform.position, _target.position) < _pursueDistance)
+                distanceToTarget = HorizontalDistance(_navMeshAgent.transform.position, _target.position);
+                if (distanceToTarget < _reachingDistance)
                 {
                     if (patrolPointReachedAction != null)
                         pursueReachedAction.Invoke();
                 }
 
-                if (_navMeshAgent.isOnOffMeshLink)
+                if (_navMeshAgent.isOnOffMeshLink && _navMeshAgent.currentOffMeshLinkData.offMeshLink != null)
                 {
                     if (_navMeshAgent.currentOffMeshLinkData.offMeshLink.area == JumpMeshLink)
                     {
@@ -209,15 +183,16 @@ public class Navigator : MonoBehaviour
 
             case NavState.GoingToPosition:
 
-                _navMeshAgent.SetDestination(_targetPosition);
+                if (_navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
+                    _navMeshAgent.SetDestination(_targetPosition);
 
-                if (HorizontalDistance(_navMeshAgent.transform.position, _targetPosition) < _checkingPlaceDistance)
+                distanceToTarget = HorizontalDistance(_navMeshAgent.transform.position, _targetPosition);
+                if (distanceToTarget < _reachingDistance)
                 {
                     if (_targetPositionReachedAction != null)
                     {
                         _targetPositionReachedAction.Invoke();
                     }
-                    ChangeState(NavState.Idle);
                 }
 
                 break;
@@ -239,14 +214,13 @@ public class Navigator : MonoBehaviour
         {
             case NavState.Idle:
                 _navMeshAgent.velocity = Vector3.zero;
-                _navMeshAgent.enabled = false;
+
+                Stop();
                 break;
 
             case NavState.Patrol:
                 _navMeshAgent.enabled = true;
 
-                _targetPosition = _patrolRoute.patrolPoints[_currentPatrolPoint].position;
-                
                 Continue();
                 break;
 
@@ -259,6 +233,7 @@ public class Navigator : MonoBehaviour
             case NavState.GoingToPosition:
                 _navMeshAgent.enabled = true;
 
+                Continue();
                 break;
 
 
@@ -268,4 +243,43 @@ public class Navigator : MonoBehaviour
 
     }
 
+
+    class PatrolList
+    {
+        public Transform[] points { get; private set; }
+        int _index;
+
+        public Transform GetNextPoint()
+        {
+            _index++;
+
+            if (_index == points.Length) _index = 0;
+
+            return points[_index];
+        }
+
+        public Transform GetCurrentPoint()
+        {
+            return points[_index];
+        }
+
+        public void SetPoints(Transform[] newPoints)
+        {
+            points = newPoints;
+            _index = 0;
+
+        }
+
+    }
+
+    public void WarpAgent()
+    {
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(transform.position, out hit, _warpDistance, NavMesh.AllAreas))
+        {
+            _navMeshAgent.Warp(hit.position);
+        }
+    }
 }
+
+

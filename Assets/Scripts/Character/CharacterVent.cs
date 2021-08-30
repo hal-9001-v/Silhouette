@@ -61,7 +61,9 @@ public class CharacterVent : InputComponent
         {
             isOnVent = true;
             _playerCamera.SetActiveCamera(_camera, PlayerCamera.TypeOfActiveCamera.Vent);
+            _playerCamera.SetForward(_characterBodyRotation.bodyForward);
             _camera.transform.position = _cameraPosition.position;
+
             _characterBodyRotation.SetMovementRotation();
 
 
@@ -71,7 +73,8 @@ public class CharacterVent : InputComponent
             _characterMovement.semaphore.Lock();
             _characterMelee.semaphore.Lock();
 
-            if (_sightTrigger != null) {
+            if (_sightTrigger != null)
+            {
                 _sightTrigger.canBeSeen = false;
             }
         }

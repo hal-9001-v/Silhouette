@@ -10,7 +10,8 @@ public class CharacterEnviroment : MonoBehaviour
     [SerializeField] [Range(0.1f, 10)] float _closeDistance;
     [SerializeField] CharacterBodyRotation _characterBodyRotation;
     [SerializeField] CharacterMovement _characterMovement;
-  
+    [SerializeField] CharacterVent _characterVent;
+
     MobRegister mobRegister;
 
     public bool isEnemyClose { get; private set; }
@@ -24,15 +25,15 @@ public class CharacterEnviroment : MonoBehaviour
 
     public int discoverCount;
 
-    public HeavyMob closestMob { get; private set; }
+    public Mob closestMob { get; private set; }
 
     private void Awake()
     {
-       mobRegister = FindObjectOfType<MobRegister>();
+        mobRegister = FindObjectOfType<MobRegister>();
 
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
         float distance;
         closestMob = ClosestMob(out distance);
@@ -47,40 +48,45 @@ public class CharacterEnviroment : MonoBehaviour
 
         }
 
-        //Decide Rotation
-        if (isEnemyClose && !_characterMovement.isSprinting)
+        if (_characterVent.isOnVent == false)
         {
+            //Decide Rotation
+            if (isEnemyClose && !_characterMovement.isSprinting)
+            {
 
-            _characterBodyRotation.SetTargetRotation(closestMob.transform);
+                _characterBodyRotation.SetTargetRotation(closestMob.transform);
+            }
+            else
+            {
+
+                _characterBodyRotation.SetMovementRotation();
+            }
+
         }
-        else
-        {
-
-            _characterBodyRotation.SetMovementRotation();
-        }
-
         //Gather enemies around
-        if (isDiscovered) {
+        if (isDiscovered)
+        {
             WarnMobs();
         }
 
     }
 
-    void WarnMobs() {
+    void WarnMobs()
+    {
         foreach (var mob in mobRegister.mobs)
         {
-            
+
 
 
         }
     }
 
-    HeavyMob ClosestMob(out float distance)
+    Mob ClosestMob(out float distance)
     {
         distance = float.MaxValue;
-        HeavyMob closestMob = null;
+        Mob closestMob = null;
 
-        foreach (HeavyMob mob in mobRegister.mobs)
+        foreach (Mob mob in mobRegister.mobs)
         {
             var newDistance = Vector3.Distance(transform.position, mob.transform.position);
             if (newDistance < distance)

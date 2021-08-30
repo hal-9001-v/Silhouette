@@ -16,6 +16,8 @@ GameObject:
   - component: {fileID: 5981929762231138893}
   - component: {fileID: 6604489947180105513}
   - component: {fileID: 2108772282}
+  - component: {fileID: 8141210900185532287}
+  - component: {fileID: 6164504514662731136}
   m_Layer: 0
   m_Name: Breakable box
   m_TagString: Untagged
@@ -145,6 +147,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 6164504514662731136}
+        m_TargetAssemblyTypeName: NoisePlayer, Assembly-CSharp
+        m_MethodName: PlayNoise
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
       - m_Target: {fileID: 5981929762231138893}
         m_TargetAssemblyTypeName: Breakable, Assembly-CSharp
         m_MethodName: DestroyThis
@@ -189,3 +203,29 @@ MonoBehaviour:
   _spawnNumber: 4
   _radius: 1
   _explosionForce: 3
+--- !u!114 &8141210900185532287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5981929762231138880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67042f2a1d98b8a4b90c36281d55bfd1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &6164504514662731136
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5981929762231138880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0f1530b01a0b7641a44adc70c116f7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _range: 4
+  _gizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}

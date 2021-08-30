@@ -15,6 +15,7 @@ public class Binocucom : InputComponent
     [SerializeField] CharacterHook _characterMelee;
     [SerializeField] CharacterWallSneak _characterWallSneak;
     [SerializeField] CharacterVent _characterVent;
+    [SerializeField] CharacterBodyRotation _characterBodyRotation;
 
     [Header("Settings")]
     [SerializeField] [Range(0f, 100)] float _minFOV = 30;
@@ -55,7 +56,9 @@ public class Binocucom : InputComponent
 
             _camera.m_Lens.FieldOfView = _maxFOV;
 
+            var previousForward = _playerCamera.GetForward();
             _playerCamera.SetActiveCamera(_camera, PlayerCamera.TypeOfActiveCamera.Binocucom);
+            _playerCamera.SetForward(previousForward);
 
             if (_characterMovement != null) _characterMovement.semaphore.Lock();
             if (_characterHook != null) _characterHook.semaphore.Lock();
@@ -74,7 +77,12 @@ public class Binocucom : InputComponent
             }
             _displayed = false;
 
+
+            var previousForward = _playerCamera.GetForward();
             _playerCamera.ResetCameraToPrevious();
+            _playerCamera.SetForward(previousForward);
+
+            _characterBodyRotation.SetForward(previousForward);
 
             if (_characterMovement != null) _characterMovement.semaphore.Unlock();
             if (_characterHook != null) _characterHook.semaphore.Unlock();

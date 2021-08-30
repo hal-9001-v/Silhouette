@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody))]
 public class CharacterBodyRotation : MonoBehaviour
 {
     [Header("References")]
@@ -21,6 +20,14 @@ public class CharacterBodyRotation : MonoBehaviour
     Vector3 _targetPosition;
 
     Vector3 _forward;
+
+    public Vector3 bodyForward
+    {
+        get
+        {
+            return _body.forward;
+        }
+    }
 
     public enum RotationType
     {
@@ -80,6 +87,17 @@ public class CharacterBodyRotation : MonoBehaviour
     }
 
     /// <summary>
+    /// Body will face such direction inmediately without stablishing a rotation overtime
+    /// </summary>
+    /// <param name="forward"></param>
+    public void SetForward(Vector3 forward)
+    {
+        forward.y = 0;
+
+        _body.forward = forward.normalized;
+    }
+
+    /// <summary>
     /// Body will face the target.
     /// </summary>
     /// <param name="target"></param>
@@ -105,7 +123,7 @@ public class CharacterBodyRotation : MonoBehaviour
     /// Body will face provided forward normalized.
     /// </summary>
     /// <param name="forward"></param>
-    public void SetForward(Vector3 forward)
+    public void SetForwardRotation(Vector3 forward)
     {
         _rotationType = RotationType.Forward;
 
@@ -115,7 +133,7 @@ public class CharacterBodyRotation : MonoBehaviour
     /// <summary>
     /// Body will face provided position
     /// </summary>
-    public void SetTargetPosition(Vector3 position)
+    public void SetTargetPositionRotation(Vector3 position)
     {
         _rotationType = RotationType.LookAtPosition;
 

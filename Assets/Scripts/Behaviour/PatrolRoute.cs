@@ -5,7 +5,7 @@ using UnityEngine;
 public class PatrolRoute : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] HeavyMob _mob;
+    [SerializeField] Mob _mob;
     public Transform[] patrolPoints;
 
     private void Start()
@@ -17,9 +17,9 @@ public class PatrolRoute : MonoBehaviour
 
     public void CreateMob() {
 
-        var mob = Instantiate(_mob.gameObject).GetComponent<HeavyMob>();
+        var mob = Instantiate(_mob.gameObject).GetComponent<Mob>();
         mob.transform.position = patrolPoints[0].position;
-        mob.GetComponent<Navigator>().WarpNavMesh();
+        mob.GetComponent<Navigator>().WarpAgent();
         
         mob.SetPatrolRoute(this);
         
@@ -28,7 +28,7 @@ public class PatrolRoute : MonoBehaviour
 
     public void RequestMob()
     {
-        foreach (HeavyMob mob in FindObjectsOfType<HeavyMob>())
+        foreach (Mob mob in FindObjectsOfType<Mob>())
         {
             if (mob.avaliableForPatrol)
             {

@@ -101,13 +101,41 @@ public class PlayerCamera : InputComponent
                 return activeCamera.transform.forward;
             //break;
 
-            case TypeOfActiveCamera.Vent:
+            case TypeOfActiveCamera.Binocucom:
                 return activeCamera.transform.forward;
             //break;
 
-            default:
-                return Vector3.zero;
+            case TypeOfActiveCamera.Vent:
+                return activeCamera.transform.forward;
                 //break;
+        }
+
+        return Vector3.zero;
+    }
+
+    public void SetForward(Vector3 forward)
+    {
+        switch (typeOfCamera)
+        {
+            case TypeOfActiveCamera.Player:
+                _cameraFollow.forward = forward;
+                break;
+
+            case TypeOfActiveCamera.Fixed:
+                activeCamera.transform.forward = forward;
+                break;
+
+            case TypeOfActiveCamera.Vent:
+                forward.y = 0;
+                activeCamera.transform.forward = forward.normalized;
+                break;
+
+            case TypeOfActiveCamera.Binocucom:
+                activeCamera.transform.forward = forward;
+                break;
+            default:
+
+                break;
         }
     }
 

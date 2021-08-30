@@ -20,7 +20,7 @@ public class InputInteractable : MonoBehaviour
     }
 
     bool _done;
-    public bool Ready;
+    public bool Ready = true;
     bool _pressInteractionCalled;
     Transform _target;
 
