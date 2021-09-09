@@ -29,7 +29,7 @@ public class Noiser : MonoBehaviour
         if (_mobRegister.listeners != null)
         {
 
-            foreach (Listener listener in _mobRegister.listeners)
+            foreach (Listener listener in FindObjectsOfType<Listener>())
             {
                 if (listener.CanHearNoise(position, range))
                 {

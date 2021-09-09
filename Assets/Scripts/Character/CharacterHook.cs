@@ -4,12 +4,12 @@ using UnityEngine;
 using Cinemachine;
 using UnityEngine.UI;
 
+
+[RequireComponent(typeof(ScreenTarget))]
 public class CharacterHook : InputComponent
 {
     [Header("References")]
     [SerializeField] Rigidbody _rigidbody;
-    [SerializeField] Camera _camera;
-    [SerializeField] RawImage _targetAim;
     [SerializeField] CharacterMovement _characterMovement;
 
 
@@ -18,10 +18,8 @@ public class CharacterHook : InputComponent
     [SerializeField] [Range(0.1f, 20)] float _speed;
     [SerializeField] [Range(0.1f, 2)] float _stopDistance;
     [SerializeField] [Range(1f, 20)] float _maxDuration;
-    [SerializeField] LayerMask _blockingMask;
 
-    [Header("Gizmos")]
-    [SerializeField] Color _gizmosColor = Color.yellow;
+    ScreenTarget _screenTarget;
 
     Hook[] _hooks;
 
@@ -31,13 +29,7 @@ public class CharacterHook : InputComponent
 
     bool _pulling;
 
-    Vector2 _screenCenter
-    {
-        get
-        {
-            return new Vector2(Screen.width, Screen.height) * 0.5f;
-        }
-    }
+    public bool hey;
 
     public Semaphore semaphore;
 
@@ -45,6 +37,8 @@ public class CharacterHook : InputComponent
     {
         _hooks = FindObjectsOfType<Hook>();
         semaphore = new Semaphore();
+
+        _screenTarget = GetComponent<ScreenTarget>();
     }
 
     private void FixedUpdate()
@@ -63,6 +57,21 @@ public class CharacterHook : InputComponent
             }
         }
 
+
+        hey = false;
+
+        foreach (Hook hook in _hooks)
+        {
+            if (Vector3.Distance(hook.transform.position, transform.position) < _range)
+            {
+                if (_screenTarget.IsObjectInAim(hook.transform))
+                {
+                    hey = true;
+
+                }
+
+            }
+        }
     }
 
     void PullToTarget(Transform target)
@@ -79,15 +88,19 @@ public class CharacterHook : InputComponent
         {
             foreach (Hook hook in _hooks)
             {
-                if (CanBeHooked(hook))
+                if (Vector3.Distance(hook.transform.position, transform.position) < _range)
                 {
-                    hook.HookCharacter(this);
+                    if (_screenTarget.IsObjectInAim(hook.transform))
+                    {
 
-                    _currentHook = hook;
+                        hook.HookCharacter(this);
 
-                    HookCharacter(hook);
+                        _currentHook = hook;
 
-                    return;
+                        HookCharacter(hook);
+
+                        return;
+                    }
                 }
             }
         }
@@ -135,30 +148,6 @@ public class CharacterHook : InputComponent
         StopCoroutine(_lifeSpan);
     }
 
-    bool CanBeHooked(Hook hook)
-    {
-        //Check if hook is too away
-        if (Vector3.Distance(hook.transform.position, transform.position) > _range) return false;
-
-        Vector3 rawPositionWorld = _camera.WorldToScreenPoint(hook.transform.position);
-
-        if (!(rawPositionWorld.x > _targetAim.rectTransform.position.x - Mathf.Abs(_targetAim.rectTransform.sizeDelta.x) * 0.5f)) return false;
-
-        if (!(rawPositionWorld.x < _targetAim.rectTransform.position.x + Mathf.Abs(_targetAim.rectTransform.sizeDelta.x) * 0.5f)) return false;
-
-        if (!(rawPositionWorld.y > _targetAim.rectTransform.position.y - Mathf.Abs(_targetAim.rectTransform.sizeDelta.y) * 0.5f)) return false;
-
-
-        if (!(rawPositionWorld.y < _targetAim.rectTransform.position.y + Mathf.Abs(_targetAim.rectTransform.sizeDelta.y) * 0.5f)) return false;
-
-        Vector3 direction = hook.transform.position - transform.position;
-        direction.Normalize();
-
-        if (Physics.Raycast(transform.position, direction, _range, _blockingMask)) return false;
-
-        return true;
-    }
-
     IEnumerator HookLifeSpan()
     {
         yield return new WaitForSeconds(_maxDuration);
@@ -172,14 +161,6 @@ public class CharacterHook : InputComponent
         {
             CheckHooks();
         };
-    }
-
-    private void OnDrawGizmos()
-    {
-
-        Gizmos.color = _gizmosColor;
-        Gizmos.DrawWireSphere(transform.position, _range);
-
     }
 
 }

@@ -31,8 +31,8 @@ public class CharacterHealth : MonoBehaviour
         _health = GetComponent<Health>();
         _waterDetector = GetComponent<WaterDetector>();
 
-        _health.HurtAction += HurtPlayer;
-        _health.DeadAction += KillPlayer;
+        _health.hurtAction += HurtPlayer;
+        _health.deadAction += KillPlayer;
 
         _waterDetector.waterContactAction += ContactWithWater;
 
@@ -46,7 +46,7 @@ public class CharacterHealth : MonoBehaviour
     {
         if (_uiCommand)
         {
-            _uiCommand.SetHealth(_health.CurrentHealth);
+            _uiCommand.SetHealth(_health.currentHealth);
         }
 
         StartCoroutine(KnockUpCharacter(_knockUpDuration));
@@ -73,9 +73,9 @@ public class CharacterHealth : MonoBehaviour
     IEnumerator KnockUpCharacter(float duration)
     {
         _characterMovement.semaphore.Lock();
-        _health.CanGetHurt = false;
+        _health.canGetHurt = false;
         yield return new WaitForSeconds(duration);
-        _health.CanGetHurt = true;
+        _health.canGetHurt = true;
 
         _characterMovement.semaphore.Unlock();
     }

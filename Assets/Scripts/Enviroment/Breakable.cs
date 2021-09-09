@@ -17,10 +17,10 @@ public class Breakable : MonoBehaviour
         var health = GetComponent<Health>();
 
         if (_hitEvent != null)
-            health.HurtAction += HitEventInvoke;
+            health.hurtAction += HitEventInvoke;
 
         if (_breakEvent != null)
-            health.DeadAction += DeadEventInvoke;
+            health.deadAction += DeadEventInvoke;
 
     }
 

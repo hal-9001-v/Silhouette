@@ -5,11 +5,14 @@ public class Health : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] [Range(0, 10)] float _maxHealth;
-    public bool CanGetHurt = true;
-    public float CurrentHealth;
+
+    public bool canGetHurt = true;
+    public float currentHealth;
+
+
     //{ get; private set; }
 
-    public TypeOfCharacter CharacterType;
+    public TypeOfCharacter typeOfCharacter;
 
     public enum TypeOfCharacter
     {
@@ -23,14 +26,14 @@ public class Health : MonoBehaviour
     /// Vector3 is the point of hit and float is the push velocity
     /// Transform is the hitting GameObject
     /// </summary>
-    public Action<Vector3, float, Transform> HurtAction;
-    public Action<Vector3, float, Transform> DeadAction;
+    public Action<Vector3, float, Transform> hurtAction;
+    public Action<Vector3, float, Transform> deadAction;
 
-    public bool IsAlive
+    public bool isAlive
     {
         get
         {
-            return CurrentHealth <= 0;
+            return currentHealth <= 0;
         }
         private set
         {
@@ -40,31 +43,31 @@ public class Health : MonoBehaviour
 
     private void Awake()
     {
-        CurrentHealth = _maxHealth;
+        currentHealth = _maxHealth;
 
-        CanGetHurt = true;
+        canGetHurt = true;
     }
 
     public void Hurt(float dmg, Vector3 source, float push, Transform hitter)
     {
-        if (CanGetHurt)
+        if (canGetHurt)
         {
-            CurrentHealth -= Mathf.Abs(dmg);
+            currentHealth -= Mathf.Abs(dmg);
 
             //Debug.Log("Hurt");
-            if (CurrentHealth > 0)
+            if (currentHealth > 0)
             {
-                if (HurtAction != null)
-                    HurtAction.Invoke(source, push, hitter);
+                if (hurtAction != null)
+                    hurtAction.Invoke(source, push, hitter);
 
             }
             else
             {
                 //Make sure it doesn't get a below zero value just in case
-                CurrentHealth = 0;
+                currentHealth = 0;
 
-                if (DeadAction != null)
-                    DeadAction.Invoke(source, push, hitter);
+                if (deadAction != null)
+                    deadAction.Invoke(source, push, hitter);
 
             }
         }

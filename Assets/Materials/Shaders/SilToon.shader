@@ -17,7 +17,13 @@ Shader "Custom/SilToon"
 
 		_InAttenuationOffset("InAttenuation", Range(0, 1)) = 1
 		_OutAttenuationOffset("OutAttenuation", Range(0, 1)) = 1
+
 		_Threshold("Threshold", Range(0, 1)) = 1
+
+			//Deformation
+			[PerRendererData]_DeformationAmmount("Deformation Ammount",float) = 0
+				[PerRendererData]_DeformationDirection("Deformation Direction", Vector) = (0,0,0,0)
+
 	}
 		SubShader
 		{
@@ -26,7 +32,7 @@ Shader "Custom/SilToon"
 
 			CGPROGRAM
 			// Physically based Standard lighting model, and enable shadows on all light types
-			#pragma surface surf Toon fullforwardshadows
+			#pragma surface surf Toon fullforwardshadows vertex:vert
 
 			// Use shader model 3.0 target, to get nicer looking lighting
 			#pragma target 3.0
@@ -54,6 +60,9 @@ Shader "Custom/SilToon"
 			half _OutAttenuationOffset;
 			half _Threshold;
 
+			float _DeformationAmmount;
+			float4 _DeformationDirection;
+
 			half4 LightingToon(SurfaceOutput s, half3 lightDir, half3 viewDir, half atten) {
 
 				half NdotL = dot(s.Normal, lightDir);
@@ -74,6 +83,15 @@ Shader "Custom/SilToon"
 				c.rgb += _AmbientLight;
 				c.a = s.Alpha;
 				return c;
+			}
+
+			void vert(inout appdata_base v) {
+
+				//half VdotD = dot(v.vertex.xyz, UnityObjectToViewPos(_DeformationDirection));
+				half VdotD = dot(v.vertex.xyz, _DeformationDirection);
+
+				v.vertex.xz += _DeformationAmmount * VdotD;
+				//v.vertex.z += _DeformationAmmount;
 			}
 
 			void surf(Input IN, inout SurfaceOutput o)

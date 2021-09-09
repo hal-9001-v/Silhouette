@@ -86,7 +86,7 @@ public class CharacterEnviroment : MonoBehaviour
         distance = float.MaxValue;
         Mob closestMob = null;
 
-        foreach (Mob mob in mobRegister.mobs)
+        foreach (Mob mob in FindObjectsOfType<Mob>())
         {
             var newDistance = Vector3.Distance(transform.position, mob.transform.position);
             if (newDistance < distance)

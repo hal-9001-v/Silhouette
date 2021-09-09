@@ -9,6 +9,7 @@ public class Mob : MonoBehaviour
     [Header("References")]
     [SerializeField] Light _light;
     [SerializeField] Pocket _pocket;
+    [SerializeField] Renderer _renderer;
 
     [Header("Settings")]
     [SerializeField] [Range(0.1f, 5)] float _patrolSpeed;
@@ -30,6 +31,14 @@ public class Mob : MonoBehaviour
     Melee _melee;
     Health _health;
     Listener _listener;
+
+    [SerializeField] [Range(0, 10)] float _hitPush;
+
+    [SerializeField] [Range(-1, 1)] float _deformation;
+    [SerializeField] [Range(0, 0.5f)] float _deformationIdle;
+    [SerializeField] Vector3 _deformationDirection;
+
+    MobShaderModifyer _shaderModifyer;
 
     public bool isFighting
     {
@@ -98,8 +107,8 @@ public class Mob : MonoBehaviour
         _melee.endOfAttackAction += EndAttack;
 
         _health = GetComponent<Health>();
-        _health.DeadAction += Die;
-        _health.HurtAction += Hurt;
+        _health.deadAction += Die;
+        _health.hurtAction += Hurt;
 
 
         _listener = GetComponent<Listener>();
@@ -108,6 +117,11 @@ public class Mob : MonoBehaviour
         _currentState = MobState.Idle;
 
         _characterBodyRotation = GetComponent<CharacterBodyRotation>();
+
+        if (_renderer)
+        {
+            _shaderModifyer = new MobShaderModifyer(_renderer);
+        }
 
         _timer = new Timer();
 
@@ -171,7 +185,7 @@ public class Mob : MonoBehaviour
                     }
                 }
 
-                if (_navigator.distanceToTarget <= _meleeRange)
+                if (Vector3.Distance(transform.position, _target.position) <= _meleeRange)
                 {
                     ChangeState(MobState.Attack);
                 }
@@ -185,7 +199,7 @@ public class Mob : MonoBehaviour
                     ChangeState(MobState.Pursue);
                 }
 
-                if (_navigator.distanceToTarget <= _meleeRange)
+                if (Vector3.Distance(_checkPlace, transform.position) <= _meleeRange)
                 {
                     ChangeState(MobState.CheckPlaceIdle);
                 }
@@ -216,7 +230,7 @@ public class Mob : MonoBehaviour
 
                 if (_timer.UpdateFixedTimer(_idleMeleeDuration))
                 {
-                    if (_navigator.distanceToTarget < _meleeRange)
+                    if (Vector3.Distance(_target.position, transform.position) < _meleeRange)
                     {
                         ChangeState(MobState.Attack);
                     }
@@ -245,6 +259,33 @@ public class Mob : MonoBehaviour
                 Debug.LogError("No such State!");
                 break;
         }
+    }
+
+    IEnumerator ElasticHit(float targetDeformation, Vector3 direction)
+    {
+        if (targetDeformation < 0)
+        {
+            targetDeformation *= -1;
+
+            direction *= -1;
+        }
+
+        _shaderModifyer.deformationDirection = direction;
+        while (_shaderModifyer.deformationAmmount < targetDeformation)
+        {
+            _shaderModifyer.deformationAmmount += targetDeformation * 0.3f;
+
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        while (_shaderModifyer.deformationAmmount > 0)
+        {
+            _shaderModifyer.deformationAmmount -= targetDeformation * 0.3f;
+
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        _shaderModifyer.deformationAmmount = 0;
     }
 
     public void SetPatrolRoute(PatrolRoute route)
@@ -371,7 +412,7 @@ public class Mob : MonoBehaviour
 
             case MobState.Stunned:
                 _timer.ResetFixedTimer();
-                _navigator.Stop();
+                //_navigator.Stop();
 
                 if (_pocket)
                     _pocket.canBePoked = false;
@@ -467,17 +508,30 @@ public class Mob : MonoBehaviour
         _navigator.Continue();
     }
 
+    Coroutine elastic;
     void Hurt(Vector3 source, float push, Transform hitter)
     {
         if (!isFighting)
         {
             Stun(source, push, hitter);
         }
-        else
+
+        if (_hitPush > 0)
         {
-            _target = hitter;
-            ChangeState(MobState.Pursue);
+            var launchVelocity = (transform.position - source).normalized * push;
+
+            launchVelocity.y = _hitPush;
+
+            _navigator.Launch(launchVelocity);
+
         }
+
+        if (elastic != null)
+            StopCoroutine(elastic);
+
+        elastic = StartCoroutine(ElasticHit(_deformation, Vector3.right));
+
+        _target = hitter;
 
     }
 
@@ -488,6 +542,25 @@ public class Mob : MonoBehaviour
 
         _stunDirection = hitSource - transform.position;
         _stunDirection.Normalize();
+    }
+
+
+    private void OnTriggerEnter(Collider other)
+    {
+        var sightTrigger = other.GetComponent<SightTrigger>();
+        if (sightTrigger)
+        {
+            if (!isFighting)
+            {
+                if (sightTrigger.typeOfTrigger == SightTrigger.TypeOfTrigger.Player)
+                {
+                    _target = sightTrigger.transform;
+
+                    ChangeState(MobState.Pursue);
+                }
+
+            }
+        }
     }
 
 }

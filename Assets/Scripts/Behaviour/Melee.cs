@@ -110,7 +110,7 @@ public class MeleeAttack
     private void Hit(Transform source, Collider coll, Vector3 pos)
     {
         var health = coll.GetComponent<Health>();
-        if (health)
+        if (coll.isTrigger == false && health)
         {
             //Debug.Log("HURT");
             health.Hurt(damage, pos, push, source);

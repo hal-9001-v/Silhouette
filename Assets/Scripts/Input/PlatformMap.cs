@@ -430,6 +430,66 @@ public class @PlatformMap : IInputActionCollection, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Cutscene"",
+            ""id"": ""6b09d1be-30e6-4bfe-ad5d-019a41aa2cc0"",
+            ""actions"": [
+                {
+                    ""name"": ""Interact"",
+                    ""type"": ""Button"",
+                    ""id"": ""1e2dc4ae-5eb8-4a32-89f3-e19e56ccfe3d"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""5603ee06-4055-43b4-814b-244868436658"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""19d56f86-0561-4809-b013-fa8ca0ff6a38"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""88e6268a-01df-436d-8558-b20948581bed"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""955e2711-09bb-45dd-b668-8821b61176e1"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -472,6 +532,9 @@ public class @PlatformMap : IInputActionCollection, IDisposable
         m_Character_BinocucomPad = m_Character.FindAction("BinocucomPad", throwIfNotFound: true);
         m_Character_Crawl = m_Character.FindAction("Crawl", throwIfNotFound: true);
         m_Character_Sprint = m_Character.FindAction("Sprint", throwIfNotFound: true);
+        // Cutscene
+        m_Cutscene = asset.FindActionMap("Cutscene", throwIfNotFound: true);
+        m_Cutscene_Interact = m_Cutscene.FindAction("Interact", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -654,6 +717,39 @@ public class @PlatformMap : IInputActionCollection, IDisposable
         }
     }
     public CharacterActions @Character => new CharacterActions(this);
+
+    // Cutscene
+    private readonly InputActionMap m_Cutscene;
+    private ICutsceneActions m_CutsceneActionsCallbackInterface;
+    private readonly InputAction m_Cutscene_Interact;
+    public struct CutsceneActions
+    {
+        private @PlatformMap m_Wrapper;
+        public CutsceneActions(@PlatformMap wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Interact => m_Wrapper.m_Cutscene_Interact;
+        public InputActionMap Get() { return m_Wrapper.m_Cutscene; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(CutsceneActions set) { return set.Get(); }
+        public void SetCallbacks(ICutsceneActions instance)
+        {
+            if (m_Wrapper.m_CutsceneActionsCallbackInterface != null)
+            {
+                @Interact.started -= m_Wrapper.m_CutsceneActionsCallbackInterface.OnInteract;
+                @Interact.performed -= m_Wrapper.m_CutsceneActionsCallbackInterface.OnInteract;
+                @Interact.canceled -= m_Wrapper.m_CutsceneActionsCallbackInterface.OnInteract;
+            }
+            m_Wrapper.m_CutsceneActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @Interact.started += instance.OnInteract;
+                @Interact.performed += instance.OnInteract;
+                @Interact.canceled += instance.OnInteract;
+            }
+        }
+    }
+    public CutsceneActions @Cutscene => new CutsceneActions(this);
     private int m_NormalSchemeIndex = -1;
     public InputControlScheme NormalScheme
     {
@@ -679,5 +775,9 @@ public class @PlatformMap : IInputActionCollection, IDisposable
         void OnBinocucomPad(InputAction.CallbackContext context);
         void OnCrawl(InputAction.CallbackContext context);
         void OnSprint(InputAction.CallbackContext context);
+    }
+    public interface ICutsceneActions
+    {
+        void OnInteract(InputAction.CallbackContext context);
     }
 }

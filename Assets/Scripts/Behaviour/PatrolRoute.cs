@@ -15,15 +15,19 @@ public class PatrolRoute : MonoBehaviour
         CreateMob();
     }
 
-    public void CreateMob() {
+    public void CreateMob()
+    {
 
-        var mob = Instantiate(_mob.gameObject).GetComponent<Mob>();
-        mob.transform.position = patrolPoints[0].position;
-        mob.GetComponent<Navigator>().WarpAgent();
-        
-        mob.SetPatrolRoute(this);
-        
-        
+        if (_mob)
+        {
+            var mob = Instantiate(_mob.gameObject).GetComponent<Mob>();
+            mob.transform.position = patrolPoints[0].position;
+            mob.GetComponent<Navigator>().WarpAgent();
+
+            mob.SetPatrolRoute(this);
+        }
+
+
     }
 
     public void RequestMob()
@@ -45,10 +49,12 @@ public class PatrolRoute : MonoBehaviour
         List<Transform> points = new List<Transform>();
 
         int counter = 1;
-        foreach (Transform point in GetComponentsInChildren<Transform>()) {
-            if (point != transform) {
+        foreach (Transform point in GetComponentsInChildren<Transform>())
+        {
+            if (point != transform)
+            {
                 points.Add(point);
-                
+
                 point.name = "Patrol Point " + counter.ToString();
                 counter++;
             }

@@ -5,13 +5,11 @@ using UnityEngine;
 using UnityEngine.AI;
 using GeneralTools;
 
-[RequireComponent(typeof(NavMeshAgent), typeof(GroundChecker))]
+[RequireComponent(typeof(NavMeshAgent), typeof(GroundChecker), typeof(Rigidbody))]
 public class Navigator : MonoBehaviour
 {
     const int JumpMeshLink = 2;
 
-    [Header("References")]
-    [SerializeField] NavMeshAgent _navMeshAgent;
 
     [Header("Settings")]
     [SerializeField] [Range(0.01f, 1)] float _reachingDistance = 0.1f;
@@ -20,10 +18,6 @@ public class Navigator : MonoBehaviour
     public Action patrolPointReachedAction;
     public Action pursueReachedAction;
     Action _targetPositionReachedAction;
-
-
-
-    public float distanceToTarget { get; private set; }
 
     PatrolList _patrolList;
 
@@ -35,11 +29,13 @@ public class Navigator : MonoBehaviour
         }
     }
 
-
     float _desiredSpeed;
 
-    Transform _target;
+    NavMeshAgent _navMeshAgent;
+    Rigidbody _rigidbody;
+    GroundChecker _groundChecker;
 
+    Transform _target;
     //Used for an specific position with no changes
     Vector3 _targetPosition;
 
@@ -51,13 +47,107 @@ public class Navigator : MonoBehaviour
 
         Pursue,
         Patrol,
-        GoingToPosition
+        GoingToPosition,
+
+        Launch,
+        Land
     }
 
     // Start is called before the first frame update
     void Awake()
     {
         _patrolList = new PatrolList();
+
+        _navMeshAgent = GetComponent<NavMeshAgent>();
+        _rigidbody = GetComponent<Rigidbody>();
+        _groundChecker = GetComponent<GroundChecker>();
+
+        _rigidbody.isKinematic = true;
+    }
+
+    private void FixedUpdate()
+    {
+        if (_navMeshAgent.isOnNavMesh == false && _navMeshAgent.enabled)
+        {
+            WarpAgent();
+        }
+
+        switch (_currentState)
+        {
+            //PATROL STATE
+            case NavState.Patrol:
+                if (_patrolList.points.Length == 0) return;
+
+                if (_navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
+                    _navMeshAgent.SetDestination(_patrolList.GetCurrentPoint().position);
+
+                if (HorizontalDistance(transform.position, _patrolList.GetCurrentPoint().position) < _reachingDistance)
+                {
+                    _patrolList.GetNextPoint();
+
+                    if (patrolPointReachedAction != null)
+                    {
+                        patrolPointReachedAction.Invoke();
+                    }
+                }
+                break;
+
+            //PURSUE STATE
+            case NavState.Pursue:
+                if (_navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
+                    _navMeshAgent.SetDestination(_target.position);
+
+                if (HorizontalDistance(_navMeshAgent.transform.position, _target.position) < _reachingDistance)
+                {
+                    if (patrolPointReachedAction != null)
+                        pursueReachedAction.Invoke();
+                }
+
+                if (_navMeshAgent.isOnOffMeshLink && _navMeshAgent.currentOffMeshLinkData.offMeshLink != null)
+                {
+                    if (_navMeshAgent.currentOffMeshLinkData.offMeshLink.area == JumpMeshLink)
+                    {
+                        _navMeshAgent.speed = _desiredSpeed * 2;
+                    }
+                }
+                else
+                {
+                    _navMeshAgent.speed = _desiredSpeed;
+                }
+
+                break;
+
+
+
+            case NavState.GoingToPosition:
+
+                if (_navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
+                    _navMeshAgent.SetDestination(_targetPosition);
+
+                if (HorizontalDistance(_navMeshAgent.transform.position, _targetPosition) < _reachingDistance)
+                {
+                    if (_targetPositionReachedAction != null)
+                    {
+                        _targetPositionReachedAction.Invoke();
+                    }
+                }
+
+                break;
+
+            case NavState.Launch:
+
+                if (_groundChecker.isGrounded)
+                {
+                    ChangeState(NavState.Land);
+                }
+
+                break;
+
+            default:
+                break;
+        }
+
+
     }
 
     public void SetPatrolRoute(PatrolRoute route)
@@ -112,12 +202,22 @@ public class Navigator : MonoBehaviour
 
     public void Stop()
     {
-        _navMeshAgent.isStopped = true;
+        if (_navMeshAgent.isOnNavMesh)
+            _navMeshAgent.isStopped = true;
     }
 
     public void Continue()
     {
-        _navMeshAgent.isStopped = false;
+        if (_navMeshAgent.isOnNavMesh)
+            _navMeshAgent.isStopped = false;
+    }
+
+    public void Launch(Vector3 velocity)
+    {
+        ChangeState(NavState.Launch);
+
+        _rigidbody.AddForce(velocity - _rigidbody.velocity, ForceMode.VelocityChange);
+
     }
 
     float HorizontalDistance(Vector3 a, Vector3 b)
@@ -125,84 +225,6 @@ public class Navigator : MonoBehaviour
         return Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
     }
 
-    private void FixedUpdate()
-    {
-        if (_navMeshAgent.isOnNavMesh == false)
-        {
-            WarpAgent();
-        }
-
-        switch (_currentState)
-        {
-            //PATROL STATE
-            case NavState.Patrol:
-                if (_patrolList.points.Length == 0) return;
-
-                if (_navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
-                    _navMeshAgent.SetDestination(_patrolList.GetCurrentPoint().position);
-
-                distanceToTarget = HorizontalDistance(_navMeshAgent.transform.position, _patrolList.GetCurrentPoint().position);
-                if (distanceToTarget < _reachingDistance)
-                {
-                    _patrolList.GetNextPoint();
-
-                    if (patrolPointReachedAction != null)
-                    {
-                        patrolPointReachedAction.Invoke();
-                    }
-                }
-                break;
-
-            //PURSUE STATE
-            case NavState.Pursue:
-                if (_navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
-                    _navMeshAgent.SetDestination(_target.position);
-
-                distanceToTarget = HorizontalDistance(_navMeshAgent.transform.position, _target.position);
-                if (distanceToTarget < _reachingDistance)
-                {
-                    if (patrolPointReachedAction != null)
-                        pursueReachedAction.Invoke();
-                }
-
-                if (_navMeshAgent.isOnOffMeshLink && _navMeshAgent.currentOffMeshLinkData.offMeshLink != null)
-                {
-                    if (_navMeshAgent.currentOffMeshLinkData.offMeshLink.area == JumpMeshLink)
-                    {
-                        _navMeshAgent.speed = _desiredSpeed * 2;
-                    }
-                }
-                else
-                {
-                    _navMeshAgent.speed = _desiredSpeed;
-                }
-
-                break;
-
-
-
-            case NavState.GoingToPosition:
-
-                if (_navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
-                    _navMeshAgent.SetDestination(_targetPosition);
-
-                distanceToTarget = HorizontalDistance(_navMeshAgent.transform.position, _targetPosition);
-                if (distanceToTarget < _reachingDistance)
-                {
-                    if (_targetPositionReachedAction != null)
-                    {
-                        _targetPositionReachedAction.Invoke();
-                    }
-                }
-
-                break;
-
-            default:
-                break;
-        }
-
-
-    }
 
     void ChangeState(NavState state)
     {
@@ -234,6 +256,20 @@ public class Navigator : MonoBehaviour
                 _navMeshAgent.enabled = true;
 
                 Continue();
+                break;
+
+            case NavState.Launch:
+                _navMeshAgent.enabled = false;
+                _rigidbody.isKinematic = false;
+
+                break;
+
+            case NavState.Land:
+                _navMeshAgent.enabled = true;
+                _rigidbody.isKinematic = true;
+
+
+
                 break;
 
 

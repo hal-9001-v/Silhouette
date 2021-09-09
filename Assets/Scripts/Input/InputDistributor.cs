@@ -8,7 +8,7 @@ public class InputDistributor : MonoBehaviour
     PlatformMap _inputMap;
     static InputDistributor _instance;
 
-    private void Start()
+    private void Awake()
     {
         if (_instance == null)
         {
