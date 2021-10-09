@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 6720042102048897837}
   - component: {fileID: 6720042102048897838}
   - component: {fileID: 6720042102048897839}
-  - component: {fileID: 8712253893761389150}
   m_Layer: 6
   m_Name: Double Building
   m_TagString: Untagged
@@ -794,18 +793,3 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
---- !u!114 &8712253893761389150
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6720042102048897824}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1611d4fad4d9a6c45a86a70ebda26936, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _platformPrefab: {fileID: 0}
-  _links: []
-  _gizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}

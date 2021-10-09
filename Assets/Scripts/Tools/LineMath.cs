@@ -69,6 +69,11 @@ namespace GeneralTools
 
         }
 
+        public static float NonVerticalDistance(Vector3 a, Vector3 b)
+        {
+            return Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
+        }
+
     }
 
 

@@ -15,6 +15,7 @@ public class DialogueGenerator : InputComponent
     [SerializeField] DialogueBox _hackerBoxPrefab;
 
     List<DialogueBox> _displayedBoxes;
+    DialogueBox _currentDialogueBox;
 
     //_started is true when Start has executed. This is to make sure that this script is not used on editor by any timeline due to this script instanciates objects.
     bool _started;
@@ -25,13 +26,19 @@ public class DialogueGenerator : InputComponent
     {
         get
         {
-            return currentDirector.playableGraph.GetRootPlayable(0).GetSpeed();
+            if (currentDirector)
+                return currentDirector.playableGraph.GetRootPlayable(0).GetSpeed();
+            else
+                return -1;
         }
 
         set
         {
-            if (currentDirector.playableGraph.IsValid())
-                currentDirector.playableGraph.GetRootPlayable(0).SetSpeed(value);
+            if (currentDirector)
+            {
+                if (currentDirector.playableGraph.IsValid())
+                    currentDirector.playableGraph.GetRootPlayable(0).SetSpeed(value);
+            }
         }
     }
 
@@ -99,6 +106,7 @@ public class DialogueGenerator : InputComponent
 
             _displayedBoxes.Add(dialogueBox);
 
+            _currentDialogueBox = dialogueBox;
             return true;
         }
         return false;
@@ -114,7 +122,10 @@ public class DialogueGenerator : InputComponent
             }
 
             _displayedBoxes.Clear();
+
+            _currentDialogueBox = null;
         }
+
     }
 
     public void EndOfClip()
@@ -131,7 +142,18 @@ public class DialogueGenerator : InputComponent
     {
         input.Cutscene.Interact.performed += ctx =>
         {
-            ResumeTimeline();
+            if (_currentDialogueBox)
+            {
+                if (_currentDialogueBox.isTextComplete)
+                {
+                    ResumeTimeline();
+                }
+                else
+                {
+                    _currentDialogueBox.Complete();
+                }
+            }
+
         };
 
 

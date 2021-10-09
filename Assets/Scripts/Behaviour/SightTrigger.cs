@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -35,6 +36,8 @@ public class SightTrigger : MonoBehaviour
 
     [HideInInspector]
     public bool canBeSeen = true;
+
+    public Action spottedAction;
 
     public enum TypeOfTrigger
     {

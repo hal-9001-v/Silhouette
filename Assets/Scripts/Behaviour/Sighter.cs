@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -28,14 +26,6 @@ public class Sighter : MonoBehaviour
     [Tooltip("Masks that can hide player")]
     [SerializeField] LayerMask _rayCastBlockingMask;
 
-    SightTrigger[] _targets;
-
-    private void Awake()
-    {
-        _targets = FindObjectsOfType<SightTrigger>();
-    }
-
-
     public static bool IsPointOnSight(Vector3 point, Vector3 len, Vector3 lenForward, float range, float angle, bool rayCast, LayerMask mask)
     {
         Vector3 lenToPoint = point - len;
@@ -62,7 +52,6 @@ public class Sighter : MonoBehaviour
         return true;
     }
 
-
     public static bool AnyPointOnSight(Vector3[] points, Vector3 len, Vector3 lenForward, float range, float angle, bool rayCast, LayerMask mask)
     {
 
@@ -77,7 +66,7 @@ public class Sighter : MonoBehaviour
 
     public SightTrigger GetTargetOnSight()
     {
-        foreach (SightTrigger trigger in _targets)
+        foreach (SightTrigger trigger in FindObjectsOfType<SightTrigger>())
         {
             if (trigger.canBeSeen && AnyPointOnSight(trigger.GetSightPoints(), _spotLight.transform.position, _spotLight.transform.forward, _spotLight.range, _spotLight.spotAngle, true, _rayCastBlockingMask))
             {
@@ -89,10 +78,22 @@ public class Sighter : MonoBehaviour
 
     }
 
-    public bool IsAnyTargetOnSight()
+    /// <summary>
+    /// Invoke spottedAction on sightTrigger if on Sight
+    /// </summary>
+    /// <param name="spot"></param>
+    /// <returns></returns>
+    public bool IsAnyTargetOnSight(bool spot)
     {
-        if (GetTargetOnSight() != null)
+        var trigger = GetTargetOnSight();
+        if (trigger)
         {
+            if (spot)
+            {
+                if (trigger.spottedAction != null)
+                    trigger.spottedAction.Invoke();
+            }
+
             return true;
         }
         else
@@ -103,24 +104,16 @@ public class Sighter : MonoBehaviour
 
     public SightTrigger[] GetTargetsOnSight()
     {
-        if (_targets != null && _targets.Length != 0)
+        List<SightTrigger> sightedTargets = new List<SightTrigger>();
+        foreach (SightTrigger trigger in FindObjectsOfType<SightTrigger>())
         {
-
-            List<SightTrigger> sightedTargets = new List<SightTrigger>();
-            foreach (SightTrigger trigger in _targets)
+            if (AnyPointOnSight(trigger.GetSightPoints(), _spotLight.transform.position, _spotLight.transform.forward, _spotLight.range, _spotLight.spotAngle, true, _rayCastBlockingMask))
             {
-                if (AnyPointOnSight(trigger.GetSightPoints(), _spotLight.transform.position, _spotLight.transform.forward, _spotLight.range, _spotLight.spotAngle, true, _rayCastBlockingMask))
-                {
-                    sightedTargets.Add(trigger);
-                }
+                sightedTargets.Add(trigger);
             }
-
-            return sightedTargets.ToArray();
         }
 
-
-
-        return null;
+        return sightedTargets.ToArray();
     }
 
 }

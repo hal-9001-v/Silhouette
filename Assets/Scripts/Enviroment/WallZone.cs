@@ -2,8 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-
-[RequireComponent(typeof(Collider))]
+using GeneralTools;
 
 public class WallZone : MonoBehaviour
 {
@@ -15,14 +14,9 @@ public class WallZone : MonoBehaviour
     public Vector3 Direction;
     public LineRenderer line;
 
-    public UnityEvent AtStartEvents;
-    public UnityEvent AtEndEvents;
+    public UnityEvent atStartEvents;
+    public UnityEvent atEndEvents;
 
-    [SerializeField] [Range(0.01f, 0.5f)] float _timeStep;
-    [SerializeField] [Range(0, 3)] int _betweenPoints;
-
-
-    private float _currentTime;
     CharacterWallSneak _player;
 
     public float CurveLength { get; private set; }
@@ -85,27 +79,12 @@ public class WallZone : MonoBehaviour
     {
         _player.StickToWall(this);
 
-        AtStartEvents.Invoke();
+        atStartEvents.Invoke();
     }
 
     public Vector3 GetClosestPoint(Vector3 position)
     {
-        Vector3 closestPosition = line.transform.TransformPoint(line.GetPosition(0));
-
-        for (int i = 1; i < line.positionCount; i++)
-        {
-
-            Vector3 newPosition = line.transform.TransformPoint(line.GetPosition(i));
-            //Vector3 newPosition = line.GetPosition(i);
-
-            if (Vector3.Distance(position, newPosition) < Vector3.Distance(closestPosition, position))
-            {
-                closestPosition = newPosition;
-            }
-
-
-        }
-        return closestPosition;
+        return LineMath.GetClosestPointOnLine(line, position, true);
     }
     public int GetClosestIndex(Vector3 position)
     {
@@ -125,8 +104,7 @@ public class WallZone : MonoBehaviour
         return index;
     }
 
-
-    public Vector3 GetPoint(ref int i)
+    public Vector3 GetPoint(int i)
     {
         if (i >= line.positionCount)
         {
@@ -141,12 +119,21 @@ public class WallZone : MonoBehaviour
         return line.transform.TransformPoint(line.GetPosition(i));
     }
 
-
     public void UnstickPlayer()
     {
-        AtEndEvents.Invoke();
+        atEndEvents.Invoke();
 
         _player.UnstickToWall();
     }
+
+
+
+}
+
+public class LinePoint{
+    
+    public Vector3 position;
+    public LinePoint leftPoint;
+    public LinePoint rightPoint;
 
 }

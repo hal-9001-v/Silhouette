@@ -29,7 +29,7 @@ public class JumpHelper : MonoBehaviour
 
         EnableRenderers();
     }
-    
+
     [ContextMenu("All Scene/Turn off Renderers on All JumpHelpers")]
     public void DisableAllRenderersOnScene()
     {
@@ -46,14 +46,13 @@ public class JumpHelper : MonoBehaviour
     {
         foreach (JumpHelper helper in GetComponentsInChildren<JumpHelper>())
         {
-            if (helper != this)
+
+            foreach (Renderer renderer in helper.GetComponentsInChildren<Renderer>())
             {
-                foreach (Renderer renderer in helper.GetComponentsInChildren<Renderer>())
-                {
-                    renderer.enabled = true;
-                }
+                renderer.enabled = true;
             }
         }
+
     }
 
     [ContextMenu("Turn off Renderers")]
@@ -61,12 +60,9 @@ public class JumpHelper : MonoBehaviour
     {
         foreach (JumpHelper helper in GetComponentsInChildren<JumpHelper>())
         {
-            if (helper != this)
+            foreach (Renderer renderer in helper.GetComponentsInChildren<Renderer>())
             {
-                foreach (Renderer renderer in helper.GetComponentsInChildren<Renderer>())
-                {
-                    renderer.enabled = false;
-                }
+                renderer.enabled = false;
             }
         }
     }

@@ -3,31 +3,48 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(CharacterBodyRotation), typeof(CharacterAligner), typeof(CharacterMovement))]
+[RequireComponent(typeof(Mover), typeof(CharacterAnimationCommand))]
 public class CharacterWallSneak : InputComponent
 {
     //Walls
     WallZone _currentWallZone;
 
-    [Header("References")]
-    [SerializeField] Transform _bodyObject;
-    [SerializeField] CharacterAligner _aligner;
-    [SerializeField] CharacterMovement _movement;
-    [SerializeField] Rigidbody _rigidbody;
-    [SerializeField] CharacterAnimationCommand _animationCommand;
+    CharacterBodyRotation _bodyRotation;
+    CharacterAligner _aligner;
+    CharacterMovement _movement;
+    CharacterAnimationCommand _animationCommand;
+    Mover _mover;
 
-
-    public LineRenderer Line;
+    public LineRenderer line;
 
     PlayerCamera _playerCamera;
 
     int _lineIndex;
+
+    Vector3 pointAtLeft
+    {
+        get
+        {
+            return _currentWallZone.GetPoint(_lineIndex - 1);
+        }
+    }
+
+    Vector3 pointAtRight
+    {
+        get
+        {
+            return _currentWallZone.GetPoint(_lineIndex + 1);
+        }
+    }
 
     [Header("Settings")]
     [SerializeField] [Range(0.01f, 20)] float _alignmentSpeed = 10;
     [SerializeField] Vector3 _alignmentOffset;
     [SerializeField] [Range(0.1f, 3)] float _speed;
 
-    public bool Apply;
+    bool _sticked;
+
     Vector2 _input;
 
     public bool atRightLimit;
@@ -37,6 +54,13 @@ public class CharacterWallSneak : InputComponent
 
     private void Awake()
     {
+        _bodyRotation = GetComponent<CharacterBodyRotation>();
+        _aligner = GetComponent<CharacterAligner>();
+        _movement = GetComponent<CharacterMovement>();
+        _animationCommand = GetComponent<CharacterAnimationCommand>();
+        _mover = GetComponent<Mover>();
+
+
         _playerCamera = FindObjectOfType<PlayerCamera>();
 
         semaphore = new Semaphore();
@@ -44,7 +68,7 @@ public class CharacterWallSneak : InputComponent
 
     private void FixedUpdate()
     {
-        if (Apply)
+        if (_sticked)
         {
             MovePlayerInWall();
         }
@@ -52,29 +76,33 @@ public class CharacterWallSneak : InputComponent
 
     public void StickToWall(WallZone wallZone)
     {
-        if (_aligner != null && semaphore.isOpen)
+        if (semaphore.isOpen)
         {
             _movement.semaphore.Lock();
 
             _currentWallZone = wallZone;
 
-            _bodyObject.forward = wallZone.Direction;
+            _bodyRotation.SetForward(wallZone.Direction);
 
             _lineIndex = wallZone.GetClosestIndex(transform.position);
 
-            _aligner.AlignCharacter(wallZone.GetPoint(ref _lineIndex) + _alignmentOffset, _alignmentSpeed, EndOfAligment);
+            _sticked = false;
+
+            _aligner.AlignCharacter(wallZone.GetPoint(_lineIndex) + _alignmentOffset, _alignmentSpeed, EndOfAligment);
         }
     }
 
     void EndOfAligment()
     {
-        Apply = true;
+        _sticked = true;
+
     }
 
     public void UnstickToWall()
     {
-        Apply = false;
         _movement.semaphore.Unlock();
+
+        _sticked = false;
 
         if (_animationCommand != null)
             _animationCommand.Idle();
@@ -84,52 +112,57 @@ public class CharacterWallSneak : InputComponent
 
     public void MovePlayerInWall()
     {
-        if (_rigidbody != null)
+        if (_input.x == 0)
         {
-            if (_input.x == 0)
+
+            if (_animationCommand != null)
+                _animationCommand.WallIdle();
+
+            _mover.StopMovement();
+        }
+        else
+        {
+            int nextIndex;
+            Vector3 direction;
+            Vector3 destination;
+            if (_input.x * _playerCamera.GetRight().x > 0)
             {
+                if (atRightLimit) return;
 
-                if (_animationCommand != null)
-                    _animationCommand.WallIdle();
+                nextIndex = _lineIndex + 1;
 
+                destination = _currentWallZone.GetPoint(_lineIndex + 1);
+                nextIndex = _lineIndex + 1;
             }
             else
             {
-                Vector3 destination;
-                int nextIndex;
-                if (_input.x * _playerCamera.GetRight().x > 0)
-                {
-                    if (atRightLimit) return;
+                if (atLeftLimit) return;
 
-                    nextIndex = _lineIndex + 1;
-                }
-                else
-                {
-                    if (atLeftLimit) return;
+                nextIndex = _lineIndex - 1;
 
-                    nextIndex = _lineIndex - 1;
-                }
-
-                destination = _currentWallZone.GetPoint(ref nextIndex);
-
-
-                var direction = destination - transform.position;
-
-                direction.y = 0;
-                direction.Normalize();
-                _rigidbody.AddForce(direction.normalized * _speed - _rigidbody.velocity, ForceMode.VelocityChange);
-
-                //Ignore verticality
-                destination.y = transform.position.y;
-                if (Vector3.Distance(destination, transform.position) < 0.01f)
-                {
-                    _lineIndex = nextIndex;
-                }
-
-                if (_animationCommand != null)
-                    _animationCommand.WallMove();
+                destination = _currentWallZone.GetPoint(_lineIndex - 1);
+                nextIndex = _lineIndex - 1;
             }
+
+            direction = destination - transform.position;
+
+            direction.y = 0;
+            direction.Normalize();
+            _mover.Move(direction * _speed);
+
+
+            //Ignore verticality
+            destination.y = transform.position.y;
+            if (Vector3.Distance(destination, transform.position) < 0.05f)
+            {
+                _lineIndex = nextIndex;
+            }
+
+
+            if (_animationCommand != null)
+                _animationCommand.WallMove();
         }
+
 
     }
 

@@ -12,7 +12,6 @@ public class CharacterHook : InputComponent
     [SerializeField] Rigidbody _rigidbody;
     [SerializeField] CharacterMovement _characterMovement;
 
-
     [Header("Settings")]
     [SerializeField] [Range(0.1f, 20)] float _range;
     [SerializeField] [Range(0.1f, 20)] float _speed;
@@ -28,8 +27,6 @@ public class CharacterHook : InputComponent
     Coroutine _lifeSpan;
 
     bool _pulling;
-
-    public bool hey;
 
     public Semaphore semaphore;
 
@@ -57,21 +54,6 @@ public class CharacterHook : InputComponent
             }
         }
 
-
-        hey = false;
-
-        foreach (Hook hook in _hooks)
-        {
-            if (Vector3.Distance(hook.transform.position, transform.position) < _range)
-            {
-                if (_screenTarget.IsObjectInAim(hook.transform))
-                {
-                    hey = true;
-
-                }
-
-            }
-        }
     }
 
     void PullToTarget(Transform target)

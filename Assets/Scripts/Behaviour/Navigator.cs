@@ -78,7 +78,7 @@ public class Navigator : MonoBehaviour
             case NavState.Patrol:
                 if (_patrolList.points.Length == 0) return;
 
-                if (_navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
+                if (_navMeshAgent.enabled)
                     _navMeshAgent.SetDestination(_patrolList.GetCurrentPoint().position);
 
                 if (HorizontalDistance(transform.position, _patrolList.GetCurrentPoint().position) < _reachingDistance)
@@ -94,7 +94,7 @@ public class Navigator : MonoBehaviour
 
             //PURSUE STATE
             case NavState.Pursue:
-                if (_navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
+                if (_navMeshAgent.enabled)
                     _navMeshAgent.SetDestination(_target.position);
 
                 if (HorizontalDistance(_navMeshAgent.transform.position, _target.position) < _reachingDistance)
@@ -121,7 +121,7 @@ public class Navigator : MonoBehaviour
 
             case NavState.GoingToPosition:
 
-                if (_navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
+                if (_navMeshAgent.enabled)
                     _navMeshAgent.SetDestination(_targetPosition);
 
                 if (HorizontalDistance(_navMeshAgent.transform.position, _targetPosition) < _reachingDistance)
@@ -148,6 +148,25 @@ public class Navigator : MonoBehaviour
         }
 
 
+    }
+
+    public void DisableNavigator()
+    {
+        _rigidbody.isKinematic = false;
+
+        _navMeshAgent.enabled = false;
+
+        enabled = false;
+
+    }
+
+    public void EnableNavigator()
+    {
+        _rigidbody.isKinematic = true;
+
+        _navMeshAgent.enabled = true;
+
+        enabled = true;
     }
 
     public void SetPatrolRoute(PatrolRoute route)

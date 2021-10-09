@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 3827415490918161418}
   - component: {fileID: 3827415490918161417}
   - component: {fileID: 3827415490918161416}
-  - component: {fileID: 216760255}
   m_Layer: 6
   m_Name: Balcony Long Building
   m_TagString: Untagged
@@ -1946,18 +1945,3 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
---- !u!114 &216760255
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3827415490918161415}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1611d4fad4d9a6c45a86a70ebda26936, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _platformPrefab: {fileID: 0}
-  _links: []
-  _gizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
+using System;
 
 public class Binocucom : InputComponent
 {
@@ -27,6 +28,9 @@ public class Binocucom : InputComponent
 
     bool _displayed;
 
+    //Coroutines
+    Coroutine _lookAtCoroutine;
+
     private void Awake()
     {
         _playerCamera = FindObjectOfType<PlayerCamera>();
@@ -46,7 +50,7 @@ public class Binocucom : InputComponent
         {
             if (_uiCommand)
             {
-                _uiCommand.DisplayBinocucom();
+                _uiCommand.DisplayBinocucom(false);
             }
             _displayed = true;
 
@@ -65,6 +69,32 @@ public class Binocucom : InputComponent
             if (_characterMelee != null) _characterMelee.semaphore.Lock();
             if (_characterWallSneak != null) _characterWallSneak.semaphore.Lock();
         }
+    }
+
+    public void LookAtPosition(Vector3 target, float duration, Action doneCallback)
+    {
+        if (_lookAtCoroutine != null)
+            StopCoroutine(_lookAtCoroutine);
+
+        _lookAtCoroutine = StartCoroutine(LerpForward((target - transform.position).normalized, duration, doneCallback));
+    }
+
+    IEnumerator LerpForward(Vector3 targetForward, float duration, Action endOfLerpAction)
+    {
+        float elapsedTime = 0;
+        Vector3 startingForward = _camera.transform.forward;
+        while (duration > elapsedTime)
+        {
+            elapsedTime += Time.deltaTime;
+
+            _camera.transform.forward = Vector3.Lerp(startingForward, targetForward, elapsedTime / duration);
+
+            yield return null;
+        }
+
+        if (endOfLerpAction != null)
+            endOfLerpAction.Invoke();
+
     }
 
     void HideBinocucom()

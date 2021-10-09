@@ -27,6 +27,8 @@ public class CharacterEnviroment : MonoBehaviour
 
     public Mob closestMob { get; private set; }
 
+    public Action spottedAction;
+
     private void Awake()
     {
         mobRegister = FindObjectOfType<MobRegister>();

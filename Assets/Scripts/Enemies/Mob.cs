@@ -1,5 +1,5 @@
+using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Navigator), typeof(Sighter), typeof(Melee))]
@@ -56,6 +56,8 @@ public class Mob : MonoBehaviour
     }
 
     CharacterBodyRotation _characterBodyRotation;
+
+    public Action startFightAction;
 
     MobState _currentState;
 
@@ -148,9 +150,14 @@ public class Mob : MonoBehaviour
         {
             case MobState.Patrol:
 
-                if (CheckForTarget())
+                if (CheckForTarget(true))
                 {
                     ChangeState(MobState.Pursue);
+
+
+                    if (startFightAction != null)
+                        startFightAction.Invoke();
+
                 }
 
                 _characterBodyRotation.SetForwardRotation(_navigator.velocity);
@@ -158,16 +165,19 @@ public class Mob : MonoBehaviour
                 break;
 
             case MobState.Idle:
-                if (CheckForTarget())
+                if (CheckForTarget(true))
                 {
                     ChangeState(MobState.Pursue);
+
+                    if (startFightAction != null)
+                        startFightAction.Invoke();
                 }
 
 
                 break;
 
             case MobState.Pursue:
-                if (CheckForTarget())
+                if (CheckForTarget(false))
                 {
                     _timer.ResetFixedTimer();
                 }
@@ -194,9 +204,14 @@ public class Mob : MonoBehaviour
                 break;
 
             case MobState.CheckPlace:
-                if (CheckForTarget())
+                if (CheckForTarget(true))
                 {
                     ChangeState(MobState.Pursue);
+
+
+                    if (startFightAction != null)
+                        startFightAction.Invoke();
+
                 }
 
                 if (Vector3.Distance(_checkPlace, transform.position) <= _meleeRange)
@@ -208,9 +223,14 @@ public class Mob : MonoBehaviour
                 break;
 
             case MobState.CheckPlaceIdle:
-                if (CheckForTarget())
+                if (CheckForTarget(true))
                 {
                     ChangeState(MobState.Pursue);
+
+
+                    if (startFightAction != null)
+                        startFightAction.Invoke();
+
                 }
                 else if (_timer.UpdateFixedTimer(_timeCheckingPlace))
                 {
@@ -247,6 +267,11 @@ public class Mob : MonoBehaviour
                 if (_timer.UpdateFixedTimer(_timeToRecover))
                 {
                     ChangeState(MobState.Pursue);
+
+
+                    if (startFightAction != null)
+                        startFightAction.Invoke();
+
                 }
                 _characterBodyRotation.SetForwardRotation(_stunDirection);
 
@@ -330,10 +355,10 @@ public class Mob : MonoBehaviour
         }
     }
 
-    bool CheckForTarget()
+    bool CheckForTarget(bool spot)
     {
         //Check if enemy target is on sight
-        if (_sighter.IsAnyTargetOnSight())
+        if (_sighter.IsAnyTargetOnSight(spot))
         {
             var trigger = _sighter.GetTargetOnSight();
 

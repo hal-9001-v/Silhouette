@@ -8,8 +8,6 @@ public class Health : MonoBehaviour
 
     public bool canGetHurt = true;
     public float currentHealth;
-
-
     //{ get; private set; }
 
     public TypeOfCharacter typeOfCharacter;

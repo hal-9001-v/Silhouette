@@ -26,6 +26,8 @@ public class CharacterHealth : MonoBehaviour
     WaterDetector _waterDetector;
     Rumbler _rumbler;
 
+    public CheckPoint activeCheckPoint;
+
     private void Start()
     {
         _health = GetComponent<Health>();
@@ -88,6 +90,12 @@ public class CharacterHealth : MonoBehaviour
         }
 
         _rumbler.Rumble(_dieRumble, _dieRumble, _dieRumbleDuration);
+
+        if (activeCheckPoint == null)
+        {
+            activeCheckPoint = CheckPoint.GetDefaultCheckPoint();
+        }
+            transform.position = activeCheckPoint.transform.position;
 
     }
 
